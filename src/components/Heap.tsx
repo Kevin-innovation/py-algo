@@ -42,7 +42,7 @@ export default function Heap() {
       case 'dict':
         return (
           <div className="flex flex-col gap-1 mt-1 font-mono text-sm border border-gray-600 rounded bg-gray-800 p-2 min-w-[40px]">
-            {obj.value && typeof obj.value === 'object' && Object.entries(obj.value as Record<string, HeapObject>).map(([k, v]) => (
+            {!!obj.value && typeof obj.value === 'object' && Object.entries(obj.value as Record<string, HeapObject>).map(([k, v]) => (
               <div key={k} className="flex gap-2">
                 <span className="text-blue-300">&quot;{k}&quot;</span>
                 <span className="text-white">:</span>
