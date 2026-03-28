@@ -1,6 +1,7 @@
 "use client";
 
-import { selectCurrentStepMetadata, selectTimelineMetadata, useStore } from '../store/useStore';
+import { useMemo } from 'react';
+import { buildCurrentStepMetadata, buildTimelineMetadata, useStore } from '../store/useStore';
 
 const eventMarkerClass = (eventKind: string): string => {
   if (eventKind === 'stdout') return 'bg-emerald-400';
@@ -12,20 +13,22 @@ const eventMarkerClass = (eventKind: string): string => {
 };
 
 export default function ControlBar() {
-  const {
-    currentStepIndex,
-    timeline,
-    stepForward,
-    stepBackward,
-    setCurrentStepIndex,
-    continueToNextBreakpoint,
-    educationalMode,
-    setEducationalMode,
-    breakpoints,
-    clearBreakpoints,
-  } = useStore();
-  const currentMeta = useStore(selectCurrentStepMetadata);
-  const timelineMeta = useStore(selectTimelineMetadata);
+  const currentStepIndex = useStore((state) => state.currentStepIndex);
+  const timeline = useStore((state) => state.timeline);
+  const stepForward = useStore((state) => state.stepForward);
+  const stepBackward = useStore((state) => state.stepBackward);
+  const setCurrentStepIndex = useStore((state) => state.setCurrentStepIndex);
+  const continueToNextBreakpoint = useStore((state) => state.continueToNextBreakpoint);
+  const educationalMode = useStore((state) => state.educationalMode);
+  const setEducationalMode = useStore((state) => state.setEducationalMode);
+  const breakpoints = useStore((state) => state.breakpoints);
+  const clearBreakpoints = useStore((state) => state.clearBreakpoints);
+
+  const timelineMeta = useMemo(() => buildTimelineMetadata(timeline, breakpoints), [timeline, breakpoints]);
+  const currentMeta = useMemo(
+    () => buildCurrentStepMetadata(timeline, breakpoints, currentStepIndex),
+    [timeline, breakpoints, currentStepIndex],
+  );
 
   if (timeline.length === 0) {
     return <div className="h-14 bg-gray-800 border-b border-gray-700 p-3 flex items-center text-gray-400 shrink-0">Run code to see timeline controls</div>;

@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
-import { selectCurrentStepMetadata, useStore } from '../store/useStore';
+import { buildCurrentStepMetadata, useStore } from '../store/useStore';
 
 export default function EditorPanel() {
   const code = useStore((state) => state.code);
@@ -13,7 +13,10 @@ export default function EditorPanel() {
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const breakpoints = useStore((state) => state.breakpoints);
   const toggleBreakpoint = useStore((state) => state.toggleBreakpoint);
-  const currentMeta = useStore(selectCurrentStepMetadata);
+  const currentMeta = useMemo(
+    () => buildCurrentStepMetadata(timeline, breakpoints, currentStepIndex),
+    [timeline, breakpoints, currentStepIndex],
+  );
   const isRunning = status === 'RUNNING' || status === 'LOADING' || status === 'WAITING_INPUT';
 
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);

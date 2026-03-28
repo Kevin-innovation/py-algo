@@ -1,11 +1,14 @@
 "use client";
 
-import { selectTimelineMetadata, useStore } from '../store/useStore';
+import { useMemo } from 'react';
+import { buildTimelineMetadata, useStore } from '../store/useStore';
 
 export default function FunctionHistoryPanel() {
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const setCurrentStepIndex = useStore((state) => state.setCurrentStepIndex);
-  const timelineMeta = useStore(selectTimelineMetadata);
+  const timeline = useStore((state) => state.timeline);
+  const breakpoints = useStore((state) => state.breakpoints);
+  const timelineMeta = useMemo(() => buildTimelineMetadata(timeline, breakpoints), [timeline, breakpoints]);
 
   if (timelineMeta.functionHistory.length === 0) {
     return (

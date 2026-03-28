@@ -1,12 +1,17 @@
 "use client";
 
+import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { selectCurrentStepMetadata, useStore, HeapObject } from '../store/useStore';
+import { buildCurrentStepMetadata, useStore, HeapObject } from '../store/useStore';
 
 export default function CallStack() {
   const timeline = useStore((state) => state.timeline);
   const currentStepIndex = useStore((state) => state.currentStepIndex);
-  const currentMeta = useStore(selectCurrentStepMetadata);
+  const breakpoints = useStore((state) => state.breakpoints);
+  const currentMeta = useMemo(
+    () => buildCurrentStepMetadata(timeline, breakpoints, currentStepIndex),
+    [timeline, breakpoints, currentStepIndex],
+  );
   const currentSnapshot = timeline[currentStepIndex];
   const changedVarSet = new Set(currentMeta?.changedVariables ?? []);
 

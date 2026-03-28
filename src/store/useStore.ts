@@ -200,7 +200,7 @@ const buildExplanation = (
   return `Execution progressed in ${fnName} at line ${snapshot.line}.`;
 };
 
-const buildTimelineMetadata = (timeline: TraceSnapshot[], breakpoints: number[]): TimelineMetadata => {
+export const buildTimelineMetadata = (timeline: TraceSnapshot[], breakpoints: number[]): TimelineMetadata => {
   const lineHitCounts = new Map<string, number>();
   const steps: StepMetadata[] = [];
   const functionHistory: FunctionHistoryItem[] = [];
@@ -258,6 +258,56 @@ const buildTimelineMetadata = (timeline: TraceSnapshot[], breakpoints: number[])
   });
 
   return { steps, functionHistory };
+};
+
+export const buildCurrentStepMetadata = (
+  timeline: TraceSnapshot[],
+  breakpoints: number[],
+  currentStepIndex: number,
+): StepMetadata | null => {
+  const snapshot = timeline[currentStepIndex];
+  if (!snapshot) return null;
+
+  const prevSnapshot = currentStepIndex > 0 ? timeline[currentStepIndex - 1] : undefined;
+  const activeFrame = snapshot.stack?.[snapshot.stack.length - 1];
+  const prevActiveFrame = prevSnapshot?.stack?.[prevSnapshot.stack.length - 1];
+  const functionName = snapshot.func_name ?? activeFrame?.func_name ?? 'Global';
+  const line = snapshot.line ?? activeFrame?.line ?? 0;
+  const callDepth = snapshot.stack?.length ?? 0;
+
+  const changedVariables = getChangedVariables(prevActiveFrame, activeFrame);
+  const changedHeapIds = getChangedHeapIds(prevSnapshot?.heap, snapshot.heap);
+
+  let loopIteration: number | undefined;
+  if (snapshot.event === 'line' || snapshot.event === 'stdout' || snapshot.event === 'stdin') {
+    let count = 0;
+    for (let idx = 0; idx <= currentStepIndex; idx += 1) {
+      const candidate = timeline[idx];
+      const candidateName = candidate.func_name ?? candidate.stack?.[candidate.stack.length - 1]?.func_name ?? 'Global';
+      const candidateLine = candidate.line ?? candidate.stack?.[candidate.stack.length - 1]?.line ?? 0;
+      if (candidateName === functionName && candidateLine === line && (candidate.event === 'line' || candidate.event === 'stdout' || candidate.event === 'stdin')) {
+        count += 1;
+      }
+    }
+    if (count > 1) {
+      loopIteration = count;
+    }
+  }
+
+  return {
+    stepIndex: currentStepIndex,
+    eventKind: snapshot.event,
+    line,
+    functionName,
+    callDepth,
+    changedVariables,
+    changedHeapIds,
+    loopIteration,
+    isInputEvent: snapshot.event === 'stdin',
+    isOutputEvent: snapshot.event === 'stdout',
+    hasBreakpoint: breakpoints.includes(line),
+    explanation: buildExplanation(snapshot, changedVariables, changedHeapIds, loopIteration),
+  };
 };
 
 export const selectTimelineMetadata = (state: StoreState): TimelineMetadata => (
