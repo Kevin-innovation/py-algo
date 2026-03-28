@@ -16,6 +16,7 @@ export interface TraceSnapshot {
     locals: Record<string, unknown>;
   }>;
   heap: Record<string, HeapObject>;
+  io?: string[];
   exception?: string;
   return_value?: unknown;
 }

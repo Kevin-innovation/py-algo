@@ -5,13 +5,17 @@ import { useStore } from '../store/useStore';
 
 export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: string) => void }) {
   const output = useStore((state) => state.output);
+  const timeline = useStore((state) => state.timeline);
+  const currentStepIndex = useStore((state) => state.currentStepIndex);
   const status = useStore((state) => state.status);
   const error = useStore((state) => state.error);
   const terminalEndRef = useRef<HTMLDivElement>(null);
+  const currentSnapshot = timeline[currentStepIndex];
+  const displayedOutput = status === 'READY' && currentSnapshot?.io ? currentSnapshot.io : output;
 
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [output, status]);
+  }, [displayedOutput, status]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -22,9 +26,12 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
   };
 
   return (
-    <div className="h-48 bg-black text-green-400 font-mono text-sm p-4 overflow-y-auto flex flex-col border-t border-gray-700 shrink-0">
-      <div className="text-gray-500 mb-2 border-b border-gray-800 pb-1 shrink-0">Terminal</div>
-      {output.map((line, idx) => (
+    <div className="h-56 bg-black text-green-400 font-mono text-sm p-4 overflow-y-auto flex flex-col border-t border-gray-700 shrink-0">
+      <div className="text-gray-500 mb-2 border-b border-gray-800 pb-1 shrink-0 flex items-center justify-between">
+        <span>Output Timeline</span>
+        {status === 'READY' && timeline.length > 0 ? <span className="text-xs text-gray-500">step-synced</span> : null}
+      </div>
+      {displayedOutput.map((line, idx) => (
         <div key={idx} className="whitespace-pre-wrap">{line}</div>
       ))}
       

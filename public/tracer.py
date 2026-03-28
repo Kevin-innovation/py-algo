@@ -1,9 +1,11 @@
 import sys
 import json
+import builtins
 
 trace_output = []
 MAX_REPR_LEN = 100
 heap_objects = {}
+io_history = []
 
 def get_obj_id(obj):
     return id(obj)
@@ -73,40 +75,72 @@ def get_call_stack(frame):
         curr = curr.f_back
     return stack
 
-def trace_calls(frame, event, arg):
-    if frame.f_code.co_filename != "<string>":
-        return trace_calls
-
+def build_snapshot(frame, event, arg=None):
     stack = get_call_stack(frame)
     if not stack:
-        return trace_calls
+        return None
 
     snapshot = {
         "event": event,
         "line": frame.f_lineno,
         "stack": stack,
-        "heap": serialize_heap_objects()
+        "heap": serialize_heap_objects(),
+        "io": list(io_history)
     }
-    
+
     if event == 'exception':
         snapshot["exception"] = repr(arg)
     elif event == 'return':
         snapshot["return_value"] = serialize_value(arg)
 
-    trace_output.append(snapshot)
+    return snapshot
+
+def append_snapshot(frame, event, arg=None):
+    snapshot = build_snapshot(frame, event, arg)
+    if snapshot is not None:
+        trace_output.append(snapshot)
+
+def traced_print(*args, **kwargs):
+    sep = kwargs.get("sep", " ")
+    end = kwargs.get("end", "\n")
+    text = sep.join(str(arg) for arg in args) + end
+    io_history.append(text)
+    frame = sys._getframe(1)
+    append_snapshot(frame, 'stdout')
+    return builtins.print(*args, **kwargs)
+
+def traced_input(prompt=""):
+    value = builtins.input(prompt)
+    echoed = f"{prompt}{value}\n"
+    io_history.append(echoed)
+    frame = sys._getframe(1)
+    append_snapshot(frame, 'stdin')
+    return value
+
+def trace_calls(frame, event, arg):
+    if frame.f_code.co_filename != "<string>":
+        return trace_calls
+
+    append_snapshot(frame, event, arg)
     return trace_calls
 
 def run_traced(code_str):
-    global trace_output, heap_objects
+    global trace_output, heap_objects, io_history
     trace_output = []
     heap_objects = {}
+    io_history = []
     
     try:
         compiled_code = compile(code_str, "<string>", "exec")
+        env = {
+            "print": traced_print,
+            "input": traced_input,
+            "__name__": "__main__"
+        }
         sys.settrace(trace_calls)
-        exec(compiled_code, {})
+        exec(compiled_code, env)
     except Exception as e:
-        trace_output.append({"event": "uncaught_exception", "exception": repr(e)})
+        trace_output.append({"event": "uncaught_exception", "exception": repr(e), "io": list(io_history)})
     finally:
         sys.settrace(None)
         
