@@ -24,3 +24,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.active-line-highlight {
+  background-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.active-line-glyph {
+  background-color: #3b82f6 !important;
+  width: 4px !important;
+  margin-left: 10px;
+}
