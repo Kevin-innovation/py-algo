@@ -1,12 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore, HeapObject } from '../store/useStore';
+import { selectCurrentStepMetadata, useStore, HeapObject } from '../store/useStore';
 
 export default function CallStack() {
   const timeline = useStore((state) => state.timeline);
   const currentStepIndex = useStore((state) => state.currentStepIndex);
+  const currentMeta = useStore(selectCurrentStepMetadata);
   const currentSnapshot = timeline[currentStepIndex];
+  const changedVarSet = new Set(currentMeta?.changedVariables ?? []);
 
   if (!currentSnapshot || !currentSnapshot.stack) {
     if (currentSnapshot && currentSnapshot.event === 'uncaught_exception') {
@@ -27,7 +29,13 @@ export default function CallStack() {
 
   return (
     <div className="flex-1 min-h-0 p-4 border-r border-gray-700 overflow-y-auto bg-gray-900">
-      <h2 className="text-xl text-white font-bold mb-4">Call Stack</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl text-white font-bold">Call Stack</h2>
+        <div className="text-xs text-gray-400">
+          depth {currentMeta?.callDepth ?? currentSnapshot.stack.length}
+          {currentMeta?.loopIteration ? <span className="text-amber-300 ml-2">loop #{currentMeta.loopIteration}</span> : null}
+        </div>
+      </div>
       <div className="flex flex-col gap-4">
         <AnimatePresence>
           {currentSnapshot.stack.map((frame, frameIdx) => (
@@ -45,20 +53,26 @@ export default function CallStack() {
               <div className="flex flex-col gap-1">
                 {Object.entries(frame.locals || {}).map(([varName, val]) => {
                   const localVal = val as HeapObject;
+                  const changed = changedVarSet.has(varName) && frameIdx === currentSnapshot.stack.length - 1;
                   return (
-                    <motion.div layout key={varName} className="flex flex-row items-center gap-2 font-mono text-sm">
-                      <span className="text-green-300">{varName}</span>
+                    <motion.div
+                      layout
+                      key={varName}
+                      className={`flex flex-row items-center gap-2 font-mono text-sm rounded px-1 ${changed ? 'bg-emerald-500/10 ring-1 ring-emerald-400/60' : ''}`}
+                    >
+                      <span className={changed ? 'text-emerald-200 font-semibold' : 'text-green-300'}>{varName}</span>
                       <span className="text-white">=</span>
                       {localVal.ref ? (
                         <span
                           id={`var-${frame.func_name}-${frameIdx}-${varName}`}
-                          className="text-purple-400 cursor-pointer hover:underline"
+                          className={changed ? 'text-fuchsia-300 cursor-pointer hover:underline' : 'text-purple-400 cursor-pointer hover:underline'}
                         >
                           pointer
                         </span>
                       ) : (
-                        <span className="text-yellow-300">{String(localVal.value)}</span>
+                        <span className={changed ? 'text-amber-200 font-semibold' : 'text-yellow-300'}>{String(localVal.value)}</span>
                       )}
+                      {changed ? <span className="text-[10px] uppercase tracking-wide text-emerald-300">changed</span> : null}
                     </motion.div>
                   );
                 })}

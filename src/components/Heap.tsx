@@ -1,12 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore, HeapObject } from '../store/useStore';
+import { selectCurrentStepMetadata, useStore, HeapObject } from '../store/useStore';
 
 export default function Heap() {
   const timeline = useStore((state) => state.timeline);
   const currentStepIndex = useStore((state) => state.currentStepIndex);
+  const currentMeta = useStore(selectCurrentStepMetadata);
   const currentSnapshot = timeline[currentStepIndex];
+  const changedHeapIds = new Set(currentMeta?.changedHeapIds ?? []);
 
   if (!currentSnapshot || !currentSnapshot.heap) {
     if (currentSnapshot && currentSnapshot.event === 'uncaught_exception') {
@@ -75,13 +77,14 @@ export default function Heap() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                className="bg-gray-800 rounded-lg p-3 shadow-md border border-gray-600 min-w-[120px]"
+                className={`bg-gray-800 rounded-lg p-3 shadow-md border min-w-[120px] ${changedHeapIds.has(id) ? 'border-cyan-400 ring-1 ring-cyan-300/70 shadow-cyan-500/10' : 'border-gray-600'}`}
               >
                 <div className="flex justify-between items-center mb-1 pb-1 border-b border-gray-700">
                   <span className="text-xs text-gray-400 font-mono">id:{id}</span>
                   <span className="text-sm font-semibold text-green-400 px-2 py-0.5 bg-gray-900 rounded">{heapObj.type}</span>
                 </div>
                 {renderHeapObject(heapObj, id)}
+                {changedHeapIds.has(id) ? <div className="mt-2 text-[10px] uppercase tracking-wide text-cyan-300">changed this step</div> : null}
               </motion.div>
             );
           })}

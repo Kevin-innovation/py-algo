@@ -7,6 +7,21 @@ MAX_REPR_LEN = 100
 heap_objects = {}
 io_history = []
 
+def append_io(kind, text, line=None, func_name=None, prompt=None, value=None):
+    entry = {
+        "kind": kind,
+        "text": text,
+    }
+    if line is not None:
+        entry["line"] = line
+    if func_name is not None:
+        entry["func_name"] = func_name
+    if prompt is not None:
+        entry["prompt"] = prompt
+    if value is not None:
+        entry["value"] = value
+    io_history.append(entry)
+
 def get_obj_id(obj):
     return id(obj)
 
@@ -80,13 +95,19 @@ def build_snapshot(frame, event, arg=None):
     if not stack:
         return None
 
+    active_func = stack[-1]["func_name"] if stack else "Global"
+
     snapshot = {
         "event": event,
         "line": frame.f_lineno,
+        "func_name": active_func,
         "stack": stack,
         "heap": serialize_heap_objects(),
         "io": list(io_history)
     }
+
+    if event in ('stdout', 'stdin') and io_history:
+        snapshot["io_event"] = io_history[-1]
 
     if event == 'exception':
         snapshot["exception"] = repr(arg)
@@ -104,16 +125,18 @@ def traced_print(*args, **kwargs):
     sep = kwargs.get("sep", " ")
     end = kwargs.get("end", "\n")
     text = sep.join(str(arg) for arg in args) + end
-    io_history.append(text)
     frame = sys._getframe(1)
+    func_name = frame.f_code.co_name if frame.f_code.co_name != "<module>" else "Global"
+    append_io("stdout", text, line=frame.f_lineno, func_name=func_name)
     append_snapshot(frame, 'stdout')
     return builtins.print(*args, **kwargs)
 
 def traced_input(prompt=""):
+    frame = sys._getframe(1)
+    func_name = frame.f_code.co_name if frame.f_code.co_name != "<module>" else "Global"
     value = builtins.input(prompt)
     echoed = f"{prompt}{value}\n"
-    io_history.append(echoed)
-    frame = sys._getframe(1)
+    append_io("stdin", echoed, line=frame.f_lineno, func_name=func_name, prompt=prompt, value=value)
     append_snapshot(frame, 'stdin')
     return value
 
