@@ -14,40 +14,48 @@
 
 ## Introduction
 
-Py-Algo는 서버 통신이나 로컬 파이썬 환경 구축 없이, 브라우저만으로 파이썬 알고리즘 코드를 작성하고 실행 과정을 실시간으로 추적할 수 있는 클라이언트 사이드 시각화 플랫폼입니다. WebAssembly(WASM) 기반의 Pyodide 엔진을 통해 보안성을 확보함과 동시에 빠른 실행 속도를 제공합니다.
+Py-Algo는 서버 통신이나 로컬 파이썬 환경 구축 없이, 브라우저만으로 파이썬 알고리즘 코드를 작성하고 실행 과정을 실시간으로 추적할 수 있는 클라이언트 사이드 시각화 플랫폼입니다. WebAssembly(WASM) 기반의 Pyodide 엔진을 통해 보안성을 확보함과 동시에 강력한 디버깅 환경을 제공합니다.
 
-복잡한 자료구조나 재귀 함수의 런타임 동작 원리를 Call Stack과 Heap Memory 포인터 모델을 통해 직관적으로 분석할 수 있어, 알고리즘 트레이닝 및 코드 레벨 디버깅에 최적화된 환경을 제공합니다.
+복잡한 자료구조나 재귀 함수의 동작 원리를 Call Stack과 Heap Memory 모델을 통해 직관적으로 분석할 수 있으며, 최신 디버거 기능을 통해 코드 레벨의 깊이 있는 학습이 가능합니다.
 
 <br />
 
 ## Key Features
 
-- **실시간 실행 흐름 추적 (Step-by-step Trace)**
-  작성된 파이썬 코드를 실행할 때 `sys.settrace` 훅(Hook)을 사용하여 각 실행 라인별 지역 변수 할당과 객체 생성 과정을 스냅샷으로 기록합니다. 생성된 타임라인을 통해 코드의 흐름을 역추적하거나 세밀하게 탐색할 수 있습니다.
+- **정밀한 실행 흐름 추적 (Step-by-step Trace)**
+  `sys.settrace`를 활용하여 각 실행 라인별 지역 변수 상태와 객체 생성 과정을 스냅샷으로 기록합니다. 타임라인 슬라이더와 이벤트 마커를 통해 코드의 흐름을 자유롭게 탐색할 수 있습니다.
+- **고급 디버깅 컨트롤**
+  - **이벤트 마커**: 출력(stdout), 입력(stdin), 함수 호출/반환, 예외 발생 지점을 타임라인에 색상별로 표시합니다.
+  - **브레이크포인트**: 특정 라인에 중단점을 설정하고 해당 지점까지 한 번에 실행(Continue)할 수 있습니다.
+  - **상태 변경 하이라이팅**: 각 단계에서 값이 변경된 변수나 힙 객체를 강조하여 변화를 즉각적으로 인지하게 합니다.
+- **교육용 설명 모드 (Educational Mode)**
+  'Explain' 기능을 활성화하면 현재 실행 중인 라인의 의미와 상태 변화를 자연어로 설명해줍니다. 알고리즘의 동작 원리를 학습하는 데 최적화되어 있습니다.
+- **함수 실행 이력 (Function History)**
+  함수의 호출과 반환, 예외 발생 이력을 별도의 패널에서 계층적으로 관리하여 복잡한 재귀 호출 구조도 쉽게 파악할 수 있습니다.
 - **동적 메모리 참조 시각화 (Dynamic Pointers)**
-  파이썬의 참조(Reference) 개념을 시각화합니다. Call Stack에 생성된 원시(Primitive) 변수들과 Heap 영역에 동적 할당된 복합 자료구조(List, Dict, Set 등) 간의 메모리 참조 관계를 실시간 화살표 렌더링(React Xarrows)으로 연결해 보여줍니다.
-- **브라우저 네이티브 동기식 터미널 (Interactive Terminal)**
-  가장 구현이 까다로운 파이썬의 동기식 `input()` 함수를 완벽히 지원합니다. Web Worker 내에서 실행되는 Pyodide의 블로킹 제약을 해결하기 위해 `SharedArrayBuffer`와 `Atomics.wait` API를 활용하여, 메인 스레드(UI)의 멈춤 없이 안정적인 양방향 I/O 통신을 구현했습니다.
-- **스마트 패키지 의존성 주입 (Smart Dependency Auto-loading)**
-  `numpy`, `pandas` 등 외부 라이브러리 임포트 구문을 AST 레벨에서 선제적으로 분석합니다. 코드가 실행되기 전에 필요한 종속성을 런타임에 동적으로 가져오고(Inject) 캐싱하므로 추가적인 패키지 관리 설정이 필요 없습니다.
+  Call Stack의 변수들과 Heap 영역의 복합 자료구조(List, Dict, Set 등) 간의 참조 관계를 실시간 화살표(React Xarrows)로 연결하여 파이썬의 메모리 관리 모델을 시각화합니다.
+- **브라우저 네이티브 동기식 터미널**
+  `SharedArrayBuffer`와 `Atomics` API를 활용하여 브라우저 환경의 제약을 극복하고 파이썬의 동기식 `input()` 함수를 완벽하게 지원합니다.
+- **스마트 패키지 자동 로드**
+  `import` 구문을 분석하여 `numpy`, `pandas` 등 필요한 외부 라이브러리를 런타임에 자동으로 가져오고 캐싱합니다.
 
 <br />
 
 ## Architecture & Tech Stack
 
-본 프로젝트는 최신 웹 표준 기술과 최적화된 스택을 활용하여 구축되었습니다.
-
-- **Next.js 16 (App Router & Turbopack)**: 효율적인 SSR 라우팅 체계 및 Turbopack을 통한 빠른 개발 환경 경험을 위해 도입되었습니다.
-- **Pyodide (WASM)**: 백엔드 서버의 자원을 소모하지 않고 사용자의 브라우저 내에서 안전하게 격리된(Sandboxed) 파이썬 실행 환경을 제공합니다.
-- **Zustand**: 타임라인 스냅샷, 코드 에디터 상태, 터미널 입출력 기록 등 전역 상태를 빠르고 가볍게 중앙 집중식으로 관리합니다.
-- **Monaco Editor**: VSCode와 동일한 코어 에디터를 채택하여 파이썬 신택스 하이라이팅, 자동 완성 및 들여쓰기 보정 등 강력한 코딩 경험을 지원합니다.
-- **Framer Motion & Tailwind CSS**: 메모리 객체가 생성되거나 소멸할 때의 자연스러운 애니메이션 전환과 반응형 UI를 구성합니다.
+- **Next.js 16 (App Router)**: 최신 React 서버 컴포넌트 아키텍처 기반의 견고한 프레임워크.
+- **Pyodide (WASM)**: 브라우저 내 격리된 환경에서 실행되는 고성능 파이썬 런타임.
+- **Zustand 5**: 타임라인 데이터와 에디터 상태를 관리하는 경량 상태 관리 라이브러리.
+- **Tailwind CSS 4**: 최신 CSS 표준을 활용한 빠르고 일관된 스타일링.
+- **Monaco Editor**: VSCode 기반의 강력한 코드 편집 경험 제공.
+- **Framer Motion 12**: 메모리 객체 변화 및 UI 전환을 위한 부드러운 애니메이션.
+- **React Xarrows**: 객체 간 참조 관계를 시각화하는 동적 화살표 렌더링.
 
 <br />
 
 ## Getting Started
 
-소스를 직접 클론하여 로컬 환경에서 개발을 진행하려면 다음 단계를 따르세요.
+로컬 환경에서 프로젝트를 실행하려면 다음 단계를 따르세요.
 
 ```bash
 # 1. 저장소 클론
@@ -61,11 +69,10 @@ npm install
 npm run dev
 ```
 
-> **Security Note:** 터미널 입력(`input()`)을 처리하는 `SharedArrayBuffer` 및 `Atomics` API는 최신 브라우저의 보안 정책상 Cross-Origin Isolation이 설정된 안전한 컨텍스트(Secure Context) 또는 `localhost`에서만 정상 작동합니다. Vercel 배포 시 `next.config.ts`의 COOP/COEP 헤더 설정을 통해 이 조건을 만족하도록 구성되어 있습니다.
+> **Security Note:** 터미널 입력(`input()`) 처리를 위한 `SharedArrayBuffer`는 보안 정책상 Cross-Origin Isolation이 설정된 환경에서만 작동합니다. 로컬(`localhost`) 또는 적절한 COOP/COEP 헤더가 설정된 배포 환경이 필요합니다.
 
 <br />
 
 ## Deployment
 
-이 프로젝트는 Vercel 환경 배포에 완벽하게 최적화되어 있습니다. Vercel 연결 후 별도의 추가 설정 없이 바로 프로덕션 빌드 및 배포가 가능합니다.
-
+본 프로젝트는 Vercel 환경에 최적화되어 있으며, Vercel Analytics를 통해 실시간 성능 및 사용 지표를 모니터링합니다.
