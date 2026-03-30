@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '',
-});
-
 export async function POST(req: Request) {
   try {
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY || '',
+    });
+
     const body = await req.json();
     const { code, password } = body;
 
@@ -46,8 +46,22 @@ ${code}
 
     return NextResponse.json({ result: content });
   } catch (error: any) {
-    console.error("AI Analysis Error:", error);
-    const errorMessage = error?.message || '알 수 없는 오류가 발생했습니다.';
-    return NextResponse.json({ error: `AI 분석 중 오류가 발생했습니다: ${errorMessage}` }, { status: 500 });
+    console.error("AI Analysis Error Details:", error);
+    
+    let errorMessage = '알 수 없는 서버 오류가 발생했습니다.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    if (error.status === 401) {
+      errorMessage = 'Anthropic API 키 인증에 실패했습니다. 유효한 키인지 확인해주세요.';
+    } else if (error.status === 403) {
+      errorMessage = 'Anthropic API 접근 권한이 없습니다. 크레딧이나 결제 상태를 확인해주세요.';
+    } else if (error.status === 429) {
+      errorMessage = 'API 호출 한도를 초과했습니다 (Rate Limit). 잠시 후 다시 시도해주세요.';
+    }
+    
+    return NextResponse.json({ 
+      error: `AI 분석 실패: ${errorMessage}` 
+    }, { status: 500 });
   }
 }
