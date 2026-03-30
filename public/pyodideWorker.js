@@ -6,7 +6,7 @@ let inputInt32Array = null;
 
 async function initPyodide() {
   if (!pyodide) {
-    self.postMessage({ type: 'STATUS', status: 'Loading Pyodide...' });
+    self.postMessage({ type: 'STATUS', status: 'Pyodide 로딩 중...' });
     pyodide = await loadPyodide({
       stdout: (text) => {
         self.postMessage({ type: 'STDOUT', text });
@@ -20,7 +20,7 @@ async function initPyodide() {
       stdin: () => {
         try {
           if (!inputBuffer) {
-            throw new Error("Cannot receive input. Ensure you are on localhost or a secure context.");
+            throw new Error("입력을 받을 수 없습니다. localhost 또는 안전한 컨텍스트(HTTPS) 환경인지 확인해주세요.");
           }
           self.postMessage({ type: 'INPUT_REQUEST' });
           
@@ -42,7 +42,7 @@ async function initPyodide() {
       }
     });
 
-    self.postMessage({ type: 'STATUS', status: 'Ready' });
+    self.postMessage({ type: 'STATUS', status: '준비됨' });
     self.postMessage({ type: 'READY' });
   }
 }
@@ -58,15 +58,19 @@ self.onmessage = async (event) => {
     try {
       await initPyodide();
     } catch (e) {
-      self.postMessage({ type: 'ERROR', error: 'Init failed: ' + e.message });
+      self.postMessage({ type: 'ERROR', error: '초기화 실패: ' + e.message });
     }
   } else if (type === 'RUN') {
     try {
       if (!pyodide) await initPyodide();
       
-      self.postMessage({ type: 'STATUS', status: 'Loading dependencies...' });
-      await pyodide.loadPackagesFromImports(code);
-      self.postMessage({ type: 'STATUS', status: 'Running...' });
+      self.postMessage({ type: 'STATUS', status: '패키지 불러오는 중...' });
+      try {
+        await pyodide.loadPackagesFromImports(code);
+      } catch (e) {
+        console.warn("Some packages failed to load:", e);
+      }
+      self.postMessage({ type: 'STATUS', status: '실행 중...' });
       
       const tracerCodeResponse = await fetch('/tracer.py');
       const tracerCode = await tracerCodeResponse.text();

@@ -38,20 +38,20 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
   return (
     <div className="h-56 bg-black text-green-400 font-mono text-sm p-4 overflow-y-auto flex flex-col border-t border-gray-700 shrink-0">
       <div className="text-gray-500 mb-2 border-b border-gray-800 pb-1 shrink-0 flex items-center justify-between">
-        <span>Output Timeline</span>
+        <span>출력 타임라인</span>
         {status === 'READY' && timeline.length > 0 ? (
           <div className="flex items-center gap-2 text-xs">
             <button
               onClick={() => setOutputMode('step-sync')}
               className={`px-2 py-0.5 rounded border ${outputMode === 'step-sync' ? 'border-emerald-400 text-emerald-300' : 'border-gray-700 text-gray-500'}`}
             >
-              step-sync
+              단계 동기화
             </button>
             <button
               onClick={() => setOutputMode('replay')}
               className={`px-2 py-0.5 rounded border ${outputMode === 'replay' ? 'border-cyan-400 text-cyan-300' : 'border-gray-700 text-gray-500'}`}
             >
-              replay
+              재생
             </button>
           </div>
         ) : null}
@@ -70,7 +70,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
                   {entry.kind} #{idx + 1}
                 </span>
                 {entry.text}
-                {isCursor ? <span className="ml-2 text-[10px] text-blue-300">◀ replay cursor</span> : null}
+                {isCursor ? <span className="ml-2 text-[10px] text-blue-300">◀ 재생 커서</span> : null}
               </div>
             );
           })}
@@ -88,7 +88,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
         </div>
       )}
       
-      {error && <div className="text-red-500 mt-2">Error: {error}</div>}
+      {error && <div className="text-red-500 mt-2">오류: {error}</div>}
       
       {status === 'WAITING_INPUT' && (
         <div className="flex flex-col mt-2">
@@ -97,11 +97,11 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
             </span>
-            Program paused for input. Type below and press Enter.
+            입력을 위해 프로그램이 일시 중지되었습니다. 아래에 입력하고 Enter를 누르세요.
           </div>
           {latestInputEntry?.prompt ? (
             <div className="text-xs text-amber-200 mb-2 font-mono bg-amber-900/20 border border-amber-700/50 rounded px-2 py-1">
-              Prompt: {latestInputEntry.prompt}
+              프롬프트: {latestInputEntry.prompt}
             </div>
           ) : null}
           <div className="flex items-center bg-gray-900 border border-yellow-500/50 rounded p-1 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
@@ -110,7 +110,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
               type="text"
               className="bg-transparent text-white outline-none flex-1 font-mono"
               autoFocus
-              placeholder="Provide stdin value and press Enter"
+              placeholder="표준 입력(stdin) 값을 제공하고 Enter를 누르세요"
               onKeyDown={handleKeyDown}
             />
           </div>

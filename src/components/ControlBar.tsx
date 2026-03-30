@@ -31,7 +31,7 @@ export default function ControlBar() {
   );
 
   if (timeline.length === 0) {
-    return <div className="h-14 bg-gray-800 border-b border-gray-700 p-3 flex items-center text-gray-400 shrink-0">Run code to see timeline controls</div>;
+    return <div className="h-14 bg-gray-800 border-b border-gray-700 p-3 flex items-center text-gray-400 shrink-0">코드를 실행하여 타임라인 컨트롤을 확인하세요</div>;
   }
 
   const totalSteps = timeline.length;
@@ -45,49 +45,49 @@ export default function ControlBar() {
             disabled={currentStepIndex === 0}
             className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50"
           >
-            First
+            처음
           </button>
           <button
             onClick={stepBackward}
             disabled={currentStepIndex === 0}
             className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50"
           >
-            Prev
+            이전
           </button>
           <button
             onClick={stepForward}
             disabled={currentStepIndex === timeline.length - 1}
             className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50"
           >
-            Next
+            다음
           </button>
           <button
             onClick={continueToNextBreakpoint}
             disabled={currentStepIndex === timeline.length - 1 || breakpoints.length === 0}
             className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-500 disabled:opacity-50"
-            title="Jump to the next step that lands on a breakpoint line"
+            title="다음 중단점이 있는 단계로 건너뛰기"
           >
-            Continue ▶
+            계속 ▶
           </button>
           <button
             onClick={() => setCurrentStepIndex(timeline.length - 1)}
             disabled={currentStepIndex === timeline.length - 1}
             className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50"
           >
-            Last
+            마지막
           </button>
           <button
             onClick={clearBreakpoints}
             disabled={breakpoints.length === 0}
             className="px-3 py-1 bg-gray-700 text-orange-200 rounded hover:bg-gray-600 disabled:opacity-50"
           >
-            Clear BPs
+            중단점 지우기
           </button>
         </div>
 
         <div className="text-white font-mono flex-1 px-4 text-right">
-          Step {currentStepIndex + 1} of {timeline.length}
-          {currentMeta?.loopIteration ? <span className="text-amber-300 ml-3">Loop #{currentMeta.loopIteration}</span> : null}
+          단계 {currentStepIndex + 1} / {timeline.length}
+          {currentMeta?.loopIteration ? <span className="text-amber-300 ml-3">루프 #{currentMeta.loopIteration}</span> : null}
         </div>
 
         <label className="text-sm text-gray-300 flex items-center gap-2">
@@ -97,7 +97,7 @@ export default function ControlBar() {
             onChange={(e) => setEducationalMode(e.target.checked)}
             className="accent-blue-500"
           />
-          Explain
+          설명
         </label>
       </div>
 
@@ -109,7 +109,7 @@ export default function ControlBar() {
           value={currentStepIndex}
           onChange={(e) => setCurrentStepIndex(Number(e.target.value))}
           className="w-full accent-blue-500"
-          aria-label="Timeline step slider"
+          aria-label="타임라인 단계 슬라이더"
         />
         <div className="pointer-events-none absolute left-0 right-0 top-0 h-4">
           {timelineMeta.steps.map((step, idx) => {
@@ -122,9 +122,9 @@ export default function ControlBar() {
                 onClick={() => setCurrentStepIndex(idx)}
                 className={`pointer-events-auto absolute top-0 h-3 w-1 rounded-sm ${eventMarkerClass(step.eventKind)} ${idx === currentStepIndex ? 'ring-1 ring-white' : ''}`}
                 style={{ left: `${leftPercent}%` }}
-                title={`Step ${idx + 1}: ${step.eventKind} at line ${step.line}`}
+                title={`단계 ${idx + 1}: ${step.line}번째 줄에서 ${step.eventKind}`}
               >
-                <span className="sr-only">Go to step {idx + 1}</span>
+                <span className="sr-only">단계 {idx + 1}(으)로 이동</span>
               </button>
             );
           })}
@@ -139,7 +139,7 @@ export default function ControlBar() {
                 key={`bp-${line}`}
                 className="absolute -top-1 h-5 w-2 bg-orange-500/90 rounded-sm"
                 style={{ left: `${leftPercent}%` }}
-                title={`Breakpoint on line ${line}`}
+                title={`${line}번째 줄의 중단점`}
               />
             );
           })}
@@ -153,7 +153,7 @@ export default function ControlBar() {
       ) : null}
 
       <div className="text-xs text-gray-400">
-        Event colors: <span className="text-emerald-300">stdout</span>, <span className="text-amber-300">stdin</span>, <span className="text-sky-300">call</span>, <span className="text-violet-300">return</span>, <span className="text-rose-400">exception</span>
+        이벤트 색상: <span className="text-emerald-300">stdout</span>, <span className="text-amber-300">stdin</span>, <span className="text-sky-300">call</span>, <span className="text-violet-300">return</span>, <span className="text-rose-400">exception</span>
       </div>
     </div>
   );

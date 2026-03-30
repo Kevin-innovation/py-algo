@@ -19,15 +19,15 @@ export default function Heap() {
     if (currentSnapshot && currentSnapshot.event === 'uncaught_exception') {
       return (
         <div className="flex-1 min-h-0 p-4 overflow-y-auto bg-gray-900 border-l border-gray-700">
-          <h2 className="text-xl text-white font-bold mb-4">Heap Objects</h2>
-          <div className="text-red-500">Execution terminated due to an exception.</div>
+          <h2 className="text-xl text-white font-bold mb-4">힙 객체</h2>
+          <div className="text-red-500">예외로 인해 실행이 종료되었습니다.</div>
         </div>
       );
     }
     return (
       <div className="flex-1 min-h-0 p-4 overflow-y-auto bg-gray-900">
-        <h2 className="text-xl text-white font-bold mb-4">Heap Objects</h2>
-        <div className="text-gray-500">Run code to see objects</div>
+        <h2 className="text-xl text-white font-bold mb-4">힙 객체</h2>
+        <div className="text-gray-500">코드를 실행하여 객체를 확인하세요</div>
       </div>
     );
   }
@@ -41,7 +41,7 @@ export default function Heap() {
           <div className="flex flex-row flex-wrap gap-1 mt-1 font-mono text-sm border border-gray-600 rounded bg-gray-800 p-1 min-w-[30px] min-h-[20px]">
             {Array.isArray(obj.value) && obj.value.map((v: HeapObject, idx: number) => (
               <div key={idx} className="bg-gray-700 px-2 py-1 rounded">
-                {v.ref ? <span id={`heap-${id}-item-${idx}`} className="text-purple-400">ref</span> : <span className="text-yellow-300">{String(v.value)}</span>}
+                {v.ref ? <span id={`heap-${id}-item-${idx}`} className="text-purple-400">참조</span> : <span className="text-yellow-300">{String(v.value)}</span>}
               </div>
             ))}
           </div>
@@ -53,7 +53,7 @@ export default function Heap() {
               <div key={k} className="flex gap-2">
                 <span className="text-blue-300">&quot;{k}&quot;</span>
                 <span className="text-white">:</span>
-                {v.ref ? <span id={`heap-${id}-key-${k}`} className="text-purple-400">ref</span> : <span className="text-yellow-300">{String(v.value)}</span>}
+                {v.ref ? <span id={`heap-${id}-key-${k}`} className="text-purple-400">참조</span> : <span className="text-yellow-300">{String(v.value)}</span>}
               </div>
             ))}
           </div>
@@ -69,7 +69,7 @@ export default function Heap() {
 
   return (
     <div className="flex-[2] min-h-0 p-4 overflow-y-auto bg-gray-900 border-l border-gray-700">
-      <h2 className="text-xl text-white font-bold mb-4">Heap Objects</h2>
+      <h2 className="text-xl text-white font-bold mb-4">힙 객체</h2>
       <div className="flex flex-row flex-wrap gap-4 items-start">
         <AnimatePresence>
           {Object.entries(currentSnapshot.heap).map(([id, obj]) => {
@@ -89,7 +89,7 @@ export default function Heap() {
                   <span className="text-sm font-semibold text-green-400 px-2 py-0.5 bg-gray-900 rounded">{heapObj.type}</span>
                 </div>
                 {renderHeapObject(heapObj, id)}
-                {changedHeapIds.has(id) ? <div className="mt-2 text-[10px] uppercase tracking-wide text-cyan-300">changed this step</div> : null}
+                {changedHeapIds.has(id) ? <div className="mt-2 text-[10px] uppercase tracking-wide text-cyan-300">이 단계에서 변경됨</div> : null}
               </motion.div>
             );
           })}

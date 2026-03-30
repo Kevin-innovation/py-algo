@@ -129,7 +129,7 @@ export default function Home() {
           disabled={status === "LOADING" || status === "RUNNING" || status === "WAITING_INPUT"}
           className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-md font-semibold disabled:opacity-50 transition-colors"
         >
-          {status === "RUNNING" ? "Running..." : status === "WAITING_INPUT" ? "Waiting Input" : "Run Code"}
+          {status === "RUNNING" ? "실행 중..." : status === "WAITING_INPUT" ? "입력 대기 중" : "코드 실행"}
         </button>
       </div>
 

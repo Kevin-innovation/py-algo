@@ -96,6 +96,10 @@ interface StoreState {
   stepForward: () => void;
   stepBackward: () => void;
   continueToNextBreakpoint: () => void;
+  isAuthenticated: boolean;
+  setAuthenticated: (auth: boolean) => void;
+  aiAnalysis: string | null;
+  setAiAnalysis: (analysis: string | null) => void;
 }
 
 const isSerializedValue = (value: unknown): value is SerializedValue => (
@@ -155,49 +159,49 @@ const buildExplanation = (
   changedHeapIds: string[],
   loopIteration: number | undefined,
 ): string => {
-  const fnName = snapshot.func_name ?? snapshot.stack[snapshot.stack.length - 1]?.func_name ?? 'Global';
-  const subject = `${fnName} at line ${snapshot.line}`;
+  const fnName = snapshot.func_name ?? snapshot.stack[snapshot.stack.length - 1]?.func_name ?? '전역(Global)';
+  const subject = `${fnName} 함수(라인 ${snapshot.line})`;
 
   if (snapshot.event === 'stdout') {
     const outputText = snapshot.io_event?.text?.trim();
     return outputText
-      ? `Printed output from ${subject}: ${outputText}`
-      : `Printed output from ${subject}.`;
+      ? `${subject}에서 다음 내용 출력: ${outputText}`
+      : `${subject}에서 출력이 발생했습니다.`;
   }
 
   if (snapshot.event === 'stdin') {
     const prompt = snapshot.io_event?.prompt;
     const value = snapshot.io_event?.value;
     if (prompt || value) {
-      return `Read user input at ${subject}${prompt ? ` (prompt: ${prompt})` : ''}${value ? ` and received "${value}"` : ''}.`;
+      return `${subject}에서 입력을 대기합니다.${prompt ? ` (안내 메시지: ${prompt})` : ''}${value ? ` 입력된 값: "${value}"` : ''}.`;
     }
-    return `Read user input at ${subject}.`;
+    return `${subject}에서 입력을 대기합니다.`;
   }
 
   if (snapshot.event === 'call') {
-    return `Entered function ${fnName} on line ${snapshot.line}.`;
+    return `${snapshot.line}번째 라인에서 ${fnName} 함수를 호출했습니다.`;
   }
 
   if (snapshot.event === 'return') {
-    return `Returned from ${fnName} on line ${snapshot.line}.`;
+    return `${snapshot.line}번째 라인에서 ${fnName} 함수의 실행을 마치고 반환합니다.`;
   }
 
   if (snapshot.event === 'exception' || snapshot.event === 'uncaught_exception') {
-    return `An exception was raised at ${subject}${snapshot.exception ? `: ${snapshot.exception}` : '.'}`;
+    return `${subject}에서 예외가 발생했습니다${snapshot.exception ? `: ${snapshot.exception}` : '.'}`;
   }
 
   if (loopIteration && loopIteration > 1) {
-    return `Loop iteration ${loopIteration} at ${subject}${changedVariables.length ? `; updated ${changedVariables.join(', ')}` : ''}.`;
+    return `${subject}에서 루프 반복 실행 중 (현재 ${loopIteration}번째 반복)${changedVariables.length ? `, 변경된 변수: ${changedVariables.join(', ')}` : ''}.`;
   }
 
   if (changedVariables.length > 0 || changedHeapIds.length > 0) {
-    const varText = changedVariables.length ? `variables (${changedVariables.join(', ')})` : '';
-    const heapText = changedHeapIds.length ? `heap objects (${changedHeapIds.join(', ')})` : '';
-    const connector = varText && heapText ? ' and ' : '';
-    return `State changed at ${subject}: ${varText}${connector}${heapText}.`;
+    const varText = changedVariables.length ? `변수 (${changedVariables.join(', ')})` : '';
+    const heapText = changedHeapIds.length ? `힙 객체 (${changedHeapIds.join(', ')})` : '';
+    const connector = varText && heapText ? ' 및 ' : '';
+    return `${subject}에서 상태가 변경되었습니다: ${varText}${connector}${heapText}.`;
   }
 
-  return `Execution progressed in ${fnName} at line ${snapshot.line}.`;
+  return `${snapshot.line}번째 라인에서 ${fnName} 코드 실행을 진행합니다.`;
 };
 
 export const buildTimelineMetadata = (timeline: TraceSnapshot[], breakpoints: number[]): TimelineMetadata => {
@@ -371,4 +375,8 @@ export const useStore = create<StoreState>((set) => ({
 
     return { currentStepIndex: nextIndex };
   }),
+  isAuthenticated: false,
+  setAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
+  aiAnalysis: null,
+  setAiAnalysis: (aiAnalysis) => set({ aiAnalysis }),
 }));

@@ -4,6 +4,8 @@ import builtins
 
 trace_output = []
 MAX_REPR_LEN = 100
+MAX_STEPS = 10000
+step_count = 0
 heap_objects = {}
 io_history = []
 
@@ -43,25 +45,38 @@ def serialize_value(val):
 def serialize_scope(scope_dict):
     result = {}
     for k, v in scope_dict.items():
-        if k.startswith("__") or k in ['sys', 'json', 'trace_output', 'MAX_REPR_LEN', 'heap_objects', 'get_obj_id', 'get_type_name', 'serialize_value', 'serialize_scope', 'serialize_heap_objects', 'get_call_stack', 'trace_calls', 'run_traced']:
+        if k.startswith("__") or k in ['sys', 'json', 'trace_output', 'MAX_REPR_LEN', 'MAX_STEPS', 'step_count', 'heap_objects', 'get_obj_id', 'get_type_name', 'serialize_value', 'serialize_scope', 'serialize_heap_objects', 'get_call_stack', 'trace_calls', 'run_traced']:
             continue
         result[k] = serialize_value(v)
     return result
 
 def serialize_heap_objects():
     serialized_heap = {}
-    # Use list to allow dictionary size changes if new nested objects are discovered
     for obj_id, obj in list(heap_objects.items()):
         val_type = get_type_name(obj)
         try:
-            if isinstance(obj, list):
+            if isinstance(obj, list) or val_type == 'deque':
                 serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in obj]}
-            elif isinstance(obj, dict):
+            elif isinstance(obj, dict) or val_type in ('Counter', 'defaultdict'):
                 serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": {str(k): serialize_value(v) for k, v in obj.items()}}
             elif isinstance(obj, tuple):
                 serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in obj]}
             elif isinstance(obj, set):
                 serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in obj]}
+            elif val_type == 'ndarray':
+                if hasattr(obj, 'size') and obj.size < 100 and hasattr(obj, 'tolist'):
+                    serialized_heap[obj_id] = {"type": "numpy.ndarray", "id": obj_id, "value": [serialize_value(x) for x in obj.tolist()]}
+                else:
+                    rep = repr(obj)
+                    val = rep[:MAX_REPR_LEN] + "..." if len(rep) > MAX_REPR_LEN else rep
+                    serialized_heap[obj_id] = {"type": "numpy.ndarray", "id": obj_id, "value": val}
+            elif val_type == 'DataFrame':
+                if hasattr(obj, 'shape') and obj.shape[0] * obj.shape[1] < 100 and hasattr(obj, 'to_dict'):
+                    serialized_heap[obj_id] = {"type": "pandas.DataFrame", "id": obj_id, "value": obj.to_dict('records')}
+                else:
+                    rep = repr(obj)
+                    val = rep[:MAX_REPR_LEN] + "..." if len(rep) > MAX_REPR_LEN else rep
+                    serialized_heap[obj_id] = {"type": "pandas.DataFrame", "id": obj_id, "value": val}
             else:
                 rep = repr(obj)
                 val = rep[:MAX_REPR_LEN] + "..." if len(rep) > MAX_REPR_LEN else rep
@@ -117,6 +132,11 @@ def build_snapshot(frame, event, arg=None):
     return snapshot
 
 def append_snapshot(frame, event, arg=None):
+    global step_count
+    step_count += 1
+    if step_count > MAX_STEPS:
+        raise RuntimeError(f"Trace limit exceeded ({MAX_STEPS} steps). Potential infinite loop.")
+        
     snapshot = build_snapshot(frame, event, arg)
     if snapshot is not None:
         trace_output.append(snapshot)
@@ -140,6 +160,28 @@ def traced_input(prompt=""):
     append_snapshot(frame, 'stdin')
     return value
 
+class TracedStdin:
+    def readline(self):
+        val = builtins.input()
+        frame = sys._getframe(1)
+        func_name = frame.f_code.co_name if frame.f_code.co_name != "<module>" else "Global"
+        echoed = f"{val}\n"
+        append_io("stdin", echoed, line=frame.f_lineno, func_name=func_name, prompt="", value=val)
+        append_snapshot(frame, 'stdin')
+        return val + "\n"
+    def read(self):
+        return self.readline()
+
+class TracedStdout:
+    def write(self, s):
+        frame = sys._getframe(1)
+        func_name = frame.f_code.co_name if frame.f_code.co_name != "<module>" else "Global"
+        append_io("stdout", str(s), line=frame.f_lineno, func_name=func_name)
+        append_snapshot(frame, 'stdout')
+        return builtins.print(s, end="")
+    def flush(self):
+        pass
+
 def trace_calls(frame, event, arg):
     if frame.f_code.co_filename != "<string>":
         return trace_calls
@@ -148,10 +190,11 @@ def trace_calls(frame, event, arg):
     return trace_calls
 
 def run_traced(code_str):
-    global trace_output, heap_objects, io_history
+    global trace_output, heap_objects, io_history, step_count
     trace_output = []
     heap_objects = {}
     io_history = []
+    step_count = 0
     
     try:
         compiled_code = compile(code_str, "<string>", "exec")
@@ -160,11 +203,21 @@ def run_traced(code_str):
             "input": traced_input,
             "__name__": "__main__"
         }
-        sys.settrace(trace_calls)
-        exec(compiled_code, env)
+        
+        original_stdin = sys.stdin
+        original_stdout = sys.stdout
+        sys.stdin = TracedStdin()
+        sys.stdout = TracedStdout()
+        
+        try:
+            sys.settrace(trace_calls)
+            exec(compiled_code, env)
+        finally:
+            sys.settrace(None)
+            sys.stdin = original_stdin
+            sys.stdout = original_stdout
+            
     except Exception as e:
         trace_output.append({"event": "uncaught_exception", "exception": repr(e), "io": list(io_history)})
-    finally:
-        sys.settrace(None)
         
     return json.dumps(trace_output)
