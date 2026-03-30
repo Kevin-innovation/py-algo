@@ -149,29 +149,41 @@ def traced_print(*args, **kwargs):
     func_name = frame.f_code.co_name if frame.f_code.co_name != "<module>" else "Global"
     append_io("stdout", text, line=frame.f_lineno, func_name=func_name)
     append_snapshot(frame, 'stdout')
-    return builtins.print(*args, **kwargs)
+    
+    sys.stdout.original_stdout.write(text)
+    sys.stdout.original_stdout.flush()
 
 def traced_input(prompt=""):
     frame = sys._getframe(1)
     func_name = frame.f_code.co_name if frame.f_code.co_name != "<module>" else "Global"
-    value = builtins.input(prompt)
-    echoed = f"{prompt}{value}\n"
-    append_io("stdin", echoed, line=frame.f_lineno, func_name=func_name, prompt=prompt, value=value)
+    
+    if prompt:
+        sys.stdout.original_stdout.write(str(prompt))
+        sys.stdout.original_stdout.flush()
+        
+    val = sys.stdin.original_stdin.readline()
+    clean_val = val[:-1] if val.endswith('\n') else val
+    
+    echoed = f"{prompt}{clean_val}\n"
+    append_io("stdin", echoed, line=frame.f_lineno, func_name=func_name, prompt=prompt, value=clean_val)
     append_snapshot(frame, 'stdin')
-    return value
+    return clean_val
 
 class TracedStdin:
     def __init__(self, original_stdin):
         self.original_stdin = original_stdin
 
     def readline(self):
-        val = builtins.input()
+        val = self.original_stdin.readline()
         frame = sys._getframe(1)
         func_name = frame.f_code.co_name if frame.f_code.co_name != "<module>" else "Global"
-        echoed = f"{val}\n"
-        append_io("stdin", echoed, line=frame.f_lineno, func_name=func_name, prompt="", value=val)
+        
+        clean_val = val[:-1] if val.endswith("\n") else val
+        echoed = f"{clean_val}\n"
+        
+        append_io("stdin", echoed, line=frame.f_lineno, func_name=func_name, prompt="", value=clean_val)
         append_snapshot(frame, 'stdin')
-        return val + "\n"
+        return val
     def read(self):
         return self.readline()
 
@@ -212,7 +224,13 @@ def run_traced(code_str):
         }
         
         original_stdin = sys.stdin
+        while hasattr(original_stdin, 'original_stdin'):
+            original_stdin = original_stdin.original_stdin
+            
         original_stdout = sys.stdout
+        while hasattr(original_stdout, 'original_stdout'):
+            original_stdout = original_stdout.original_stdout
+            
         sys.stdin = TracedStdin(original_stdin)
         sys.stdout = TracedStdout(original_stdout)
         
