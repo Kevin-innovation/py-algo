@@ -72,7 +72,7 @@ self.onmessage = async (event) => {
       }
       self.postMessage({ type: 'STATUS', status: '실행 중...' });
       
-      const tracerCodeResponse = await fetch('/tracer.py');
+      const tracerCodeResponse = await fetch('/tracer.py?v=' + Date.now());
       const tracerCode = await tracerCodeResponse.text();
       await pyodide.runPythonAsync(tracerCode);
 
