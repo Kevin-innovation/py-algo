@@ -45,8 +45,9 @@ ${code}
     const content = msg.content[0].type === 'text' ? msg.content[0].text : '';
 
     return NextResponse.json({ result: content });
-  } catch (error) {
+  } catch (error: any) {
     console.error("AI Analysis Error:", error);
-    return NextResponse.json({ error: 'AI 분석 중 오류가 발생했습니다.' }, { status: 500 });
+    const errorMessage = error?.message || '알 수 없는 오류가 발생했습니다.';
+    return NextResponse.json({ error: `AI 분석 중 오류가 발생했습니다: ${errorMessage}` }, { status: 500 });
   }
 }
