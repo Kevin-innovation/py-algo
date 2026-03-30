@@ -172,7 +172,7 @@ export default function EditorPanel() {
             glyphMargin: true,
           }}
         />
-        {isPanelOpen && aiAnalysis && (
+        {isPanelOpen && aiAnalysis !== null && (
           <AiAnalysisPanel 
             content={aiAnalysis} 
             onClose={() => setIsPanelOpen(false)} 

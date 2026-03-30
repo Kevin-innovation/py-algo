@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+export const maxDuration = 60; // Vercel Serverless Function Timeout 설정 (60초)
+
 export async function POST(req: Request) {
   try {
     const apiKey = process.env.GEMINI_API_KEY || '';
@@ -43,6 +45,11 @@ ${code}
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const content = response.text();
+
+    if (!content) {
+      console.warn("AI generated empty content. Candidate details:", JSON.stringify(response.candidates, null, 2));
+      throw new Error("AI가 빈 응답을 반환했습니다. 코드가 너무 길거나, 안전 정책에 의해 차단되었을 수 있습니다.");
+    }
 
     return NextResponse.json({ result: content });
   } catch (error: unknown) {
