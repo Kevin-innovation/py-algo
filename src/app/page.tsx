@@ -122,7 +122,7 @@ export default function Home() {
     <div className="flex h-full bg-gray-900 overflow-hidden flex-col w-full">
       <div className="h-14 bg-gray-800 border-b border-gray-700 flex items-center px-6 justify-between shadow-sm shrink-0">
         <h1 className="text-white font-bold text-2xl tracking-tight flex items-baseline gap-2">
-          <span><span className="text-orange-500">DLAB Py</span>Algo</span>
+          <span><span className="text-orange-500">DLAB</span> <span className="text-blue-500">Py</span>Algo</span>
           <span className="text-sm font-medium text-gray-400 tracking-normal">visualization by Kevin</span>
         </h1>
         <button
