@@ -161,6 +161,9 @@ def traced_input(prompt=""):
     return value
 
 class TracedStdin:
+    def __init__(self, original_stdin):
+        self.original_stdin = original_stdin
+
     def readline(self):
         val = builtins.input()
         frame = sys._getframe(1)
@@ -173,14 +176,18 @@ class TracedStdin:
         return self.readline()
 
 class TracedStdout:
+    def __init__(self, original_stdout):
+        self.original_stdout = original_stdout
+
     def write(self, s):
         frame = sys._getframe(1)
         func_name = frame.f_code.co_name if frame.f_code.co_name != "<module>" else "Global"
         append_io("stdout", str(s), line=frame.f_lineno, func_name=func_name)
         append_snapshot(frame, 'stdout')
-        return builtins.print(s, end="")
+        self.original_stdout.write(s)
+        return len(s)
     def flush(self):
-        pass
+        self.original_stdout.flush()
 
 def trace_calls(frame, event, arg):
     if frame.f_code.co_filename != "<string>":
@@ -206,8 +213,8 @@ def run_traced(code_str):
         
         original_stdin = sys.stdin
         original_stdout = sys.stdout
-        sys.stdin = TracedStdin()
-        sys.stdout = TracedStdout()
+        sys.stdin = TracedStdin(original_stdin)
+        sys.stdout = TracedStdout(original_stdout)
         
         try:
             sys.settrace(trace_calls)
