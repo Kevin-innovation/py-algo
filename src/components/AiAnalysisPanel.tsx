@@ -22,7 +22,7 @@ export default function AiAnalysisPanel({ content, onClose }: Props) {
           </svg>
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto p-6 prose prose-invert max-w-none prose-pre:bg-gray-800 prose-pre:border prose-pre:border-gray-700">
+      <div className="flex-1 overflow-y-auto p-6 prose prose-invert max-w-none prose-headings:text-blue-400 prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-a:text-blue-400 hover:prose-a:text-blue-300 prose-strong:text-white prose-code:text-pink-400 prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-pre:bg-gray-800 prose-pre:border prose-pre:border-gray-700 prose-blockquote:border-l-blue-500 prose-blockquote:bg-gray-800/50 prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:not-italic prose-blockquote:text-gray-300 prose-li:marker:text-blue-500 prose-hr:border-gray-700 leading-relaxed">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {content}
         </ReactMarkdown>
