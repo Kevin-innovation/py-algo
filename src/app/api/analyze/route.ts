@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export async function POST(req: Request) {
   try {
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY || '',
-    });
+    const apiKey = process.env.GEMINI_API_KEY || '';
+    if (!apiKey) {
+      return NextResponse.json({ error: 'GEMINI_API_KEY가 설정되지 않았습니다.' }, { status: 500 });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const body = await req.json();
     const { code, password } = body;
@@ -36,28 +40,17 @@ export async function POST(req: Request) {
 ${code}
 `;
 
-    const msg = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
-      max_tokens: 4000,
-      messages: [{ role: "user", content: prompt }]
-    });
-
-    const content = msg.content[0].type === 'text' ? msg.content[0].text : '';
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const content = response.text();
 
     return NextResponse.json({ result: content });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("AI Analysis Error Details:", error);
     
     let errorMessage = '알 수 없는 서버 오류가 발생했습니다.';
     if (error instanceof Error) {
       errorMessage = error.message;
-    }
-    if (error.status === 401) {
-      errorMessage = 'Anthropic API 키 인증에 실패했습니다. 유효한 키인지 확인해주세요.';
-    } else if (error.status === 403) {
-      errorMessage = 'Anthropic API 접근 권한이 없습니다. 크레딧이나 결제 상태를 확인해주세요.';
-    } else if (error.status === 429) {
-      errorMessage = 'API 호출 한도를 초과했습니다 (Rate Limit). 잠시 후 다시 시도해주세요.';
     }
     
     return NextResponse.json({ 
