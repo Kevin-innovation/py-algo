@@ -81,6 +81,139 @@ export default function AlgorithmDetail({ algorithm, onRunInEditor }: AlgorithmD
           </pre>
         </div>
       </div>
+
+      {/* Analogy - 개념 설명 (실생활 비유) */}
+      {algorithm.analogy && (
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.073c.467 0 .884-.266 1.074-.66l2.858-5.714a1 1 0 00-.364-1.118l-2.858-5.714A1.25 1.25 0 008.663 5H4.073a1.25 1.25 0 00-1.074.66L.145 11.372a1 1 0 000 1.256l2.858 5.714c.19.394.607.66 1.074.66z" />
+            </svg>
+            개념 이해하기
+          </h3>
+          <div className="bg-gray-800/50 p-5 rounded-lg border border-gray-700">
+            <p className="text-gray-300 leading-relaxed text-base" data-testid="algo-analogy">
+              {algorithm.analogy}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Pros and Cons - 장단점 */}
+      {algorithm.prosCons && (
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            장단점
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {algorithm.prosCons.pros.length > 0 && (
+              <div className="bg-green-900/20 p-4 rounded-lg border border-green-700/50">
+                <h4 className="text-sm font-semibold text-green-400 mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  장점
+                </h4>
+                <ul className="space-y-2" data-testid="algo-pros">
+                  {algorithm.prosCons.pros.map((pro, index) => (
+                    <li key={index} className="flex gap-2 text-gray-300 text-sm">
+                      <span className="text-green-400">•</span>
+                      <span>{pro}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {algorithm.prosCons.cons.length > 0 && (
+              <div className="bg-red-900/20 p-4 rounded-lg border border-red-700/50">
+                <h4 className="text-sm font-semibold text-red-400 mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  단점
+                </h4>
+                <ul className="space-y-2" data-testid="algo-cons">
+                  {algorithm.prosCons.cons.map((con, index) => (
+                    <li key={index} className="flex gap-2 text-gray-300 text-sm">
+                      <span className="text-red-400">•</span>
+                      <span>{con}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Examples - 실전 예제 */}
+      {algorithm.examples && algorithm.examples.length > 0 && (
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-1.396a1.5 1.5 0 00-1.86 0l-2.387 1.396a2 2 0 01-1.022.547l-3.146.874a2 2 0 01-1.86-1.022l-.874-3.146a2 2 0 00-.547-1.022L3.9 11.172a1.5 1.5 0 010-1.86l1.396-2.387a2 2 0 00.547-1.022L5.77 2.6a2 2 0 011.022-.547l3.146-.874a2 2 0 011.86 0l2.387 1.396a2 2 0 001.022.547l3.146.874a2 2 0 001.86 1.022l.874 3.146a2 2 0 00.547 1.022l1.396 2.387a1.5 1.5 0 010 1.86z" />
+            </svg>
+            실전 활용 예시
+          </h3>
+          <ul className="space-y-3" data-testid="algo-examples">
+            {algorithm.examples.map((example, index) => (
+              <li key={index} className="flex gap-3 text-gray-300 bg-gray-800/50 p-3 rounded-md border border-gray-700/50">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-xs font-bold">
+                  {index + 1}
+                </span>
+                <span className="leading-relaxed">{example}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Practice Problems - 연습 문제 */}
+      {algorithm.practiceProblems && algorithm.practiceProblems.length > 0 && (
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M4 16h.01" />
+            </svg>
+            연습 문제
+          </h3>
+          <ul className="space-y-3" data-testid="algo-practice-problems">
+            {algorithm.practiceProblems.map((problem, index) => (
+              <li key={index} className="flex gap-3 text-gray-300 bg-gray-800/50 p-3 rounded-md border border-gray-700/50">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-pink-600/30 text-pink-400 flex items-center justify-center text-xs font-bold">
+                  Q{index + 1}
+                </span>
+                <span className="leading-relaxed">{problem}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Caveats - 주의사항 */}
+      {algorithm.caveats && algorithm.caveats.length > 0 && (
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 0v2m0 0h2m0 0v2m0 0h2m0 0v2m0 0v2m0 0h2m0 0v2M7 5a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H7z" />
+            </svg>
+            주의사항
+          </h3>
+          <div className="bg-orange-900/10 p-5 rounded-lg border border-orange-700/50">
+            <ul className="space-y-2" data-testid="algo-caveats">
+              {algorithm.caveats.map((caveat, index) => (
+                <li key={index} className="flex gap-2 text-gray-300 text-sm">
+                  <span className="text-orange-400">⚠</span>
+                  <span>{caveat}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

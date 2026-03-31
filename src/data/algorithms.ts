@@ -15,6 +15,15 @@ export interface Algorithm {
   spaceComplexity: string;
   howItWorks: string[];
   code: string;
+  // 새로운 선택적 필드들 (optional)
+  analogy?: string;
+  prosCons?: {
+    pros: string[];
+    cons: string[];
+  };
+  examples?: string[];
+  practiceProblems?: string[];
+  caveats?: string[];
 }
 
 export interface Category {
