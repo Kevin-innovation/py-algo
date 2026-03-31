@@ -20,6 +20,8 @@ export default function Home() {
     appendOutput,
     clearOutput,
     setError,
+    setErrorLine,
+    setErrorColumn,
     setTimeline,
   } = useStore();
 
@@ -49,7 +51,7 @@ export default function Home() {
     }
 
     workerRef.current.onmessage = (e) => {
-      const { type, status: msgStatus, text, error, trace } = e.data;
+      const { type, status: msgStatus, text, error, errorLine, errorColumn, trace } = e.data;
 
       if (type === "STATUS") {
         setStatus(msgStatus);
@@ -64,8 +66,12 @@ export default function Home() {
       } else if (type === "ERROR") {
         setStatus("ERROR");
         setError(error);
+        setErrorLine(typeof errorLine === 'number' ? errorLine : null);
+        setErrorColumn(typeof errorColumn === 'number' ? errorColumn : null);
       } else if (type === "DONE") {
         setStatus("READY");
+        setErrorLine(null);
+        setErrorColumn(null);
         if (trace) {
           try {
             const parsedTrace = JSON.parse(trace);
@@ -87,6 +93,8 @@ export default function Home() {
   const runCode = () => {
     clearOutput();
     setError(null);
+    setErrorLine(null);
+    setErrorColumn(null);
     setStatus("RUNNING");
     setTimeline([]);
     

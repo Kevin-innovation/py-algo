@@ -242,7 +242,25 @@ def run_traced(code_str):
             sys.stdin = original_stdin
             sys.stdout = original_stdout
             
+    except SyntaxError as e:
+        trace_output.append({
+            "event": "compile_error",
+            "line": e.lineno or 0,
+            "offset": e.offset,
+            "text": e.text,
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "exception": repr(e),
+            "io": list(io_history)
+        })
     except Exception as e:
-        trace_output.append({"event": "uncaught_exception", "exception": repr(e), "io": list(io_history)})
+        trace_output.append({
+            "event": "uncaught_exception",
+            "line": getattr(e, 'lineno', 0) or 0,
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "exception": repr(e),
+            "io": list(io_history)
+        })
         
     return json.dumps(trace_output)

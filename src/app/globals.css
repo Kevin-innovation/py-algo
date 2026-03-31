@@ -54,3 +54,23 @@ body {
   border-radius: 9999px;
   margin-left: 8px;
 }
+
+.compile-error-line-highlight {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.28), rgba(239, 68, 68, 0.08)) !important;
+  border-left: 3px solid rgba(248, 113, 113, 0.9);
+}
+
+.compile-error-inline-highlight {
+  background-color: rgba(239, 68, 68, 0.18);
+  border-bottom: 2px wavy rgba(248, 113, 113, 0.95);
+  border-radius: 2px;
+}
+
+.compile-error-glyph {
+  background: #ef4444 !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 9999px;
+  margin-left: 7px;
+  box-shadow: 0 0 0 2px rgba(127, 29, 29, 0.9);
+}

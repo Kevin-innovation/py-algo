@@ -78,10 +78,23 @@ self.onmessage = async (event) => {
 
       const runTraced = pyodide.globals.get('run_traced');
       const traceOutput = runTraced(code);
+      const parsedTrace = JSON.parse(traceOutput);
+
+      if (Array.isArray(parsedTrace) && parsedTrace[0]?.event === 'compile_error') {
+        const compileError = parsedTrace[0];
+        self.postMessage({
+          type: 'ERROR',
+          error: `${compileError.error_type}: ${compileError.error_message}`,
+          errorLine: compileError.line ?? null,
+          errorColumn: compileError.offset ?? null,
+          trace: traceOutput,
+        });
+        return;
+      }
       
       self.postMessage({ type: 'DONE', trace: traceOutput });
     } catch (error) {
-      self.postMessage({ type: 'ERROR', error: error.message });
+      self.postMessage({ type: 'ERROR', error: error.message, errorLine: null, errorColumn: null });
     }
   }
 };

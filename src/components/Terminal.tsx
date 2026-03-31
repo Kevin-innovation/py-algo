@@ -9,6 +9,8 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const status = useStore((state) => state.status);
   const error = useStore((state) => state.error);
+  const errorLine = useStore((state) => state.errorLine);
+  const errorColumn = useStore((state) => state.errorColumn);
   const outputMode = useStore((state) => state.outputMode);
   const setOutputMode = useStore((state) => state.setOutputMode);
   const terminalEndRef = useRef<HTMLDivElement>(null);
@@ -88,7 +90,11 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
         </div>
       )}
       
-      {error && <div className="text-red-500 mt-2">오류: {error}</div>}
+      {error && (
+        <div className="text-red-500 mt-2 whitespace-pre-wrap break-words">
+          오류{errorLine ? ` (라인 ${errorLine}${errorColumn ? `, 열 ${errorColumn}` : ''})` : ''}: {error}
+        </div>
+      )}
       
       {status === 'WAITING_INPUT' && (
         <div className="flex flex-col mt-2">

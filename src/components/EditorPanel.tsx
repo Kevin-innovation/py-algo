@@ -15,6 +15,8 @@ export default function EditorPanel() {
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const breakpoints = useStore((state) => state.breakpoints);
   const toggleBreakpoint = useStore((state) => state.toggleBreakpoint);
+  const errorLine = useStore((state) => state.errorLine);
+  const errorColumn = useStore((state) => state.errorColumn);
   const isAuthenticated = useStore((state) => state.isAuthenticated);
   const setAuthenticated = useStore((state) => state.setAuthenticated);
   const aiAnalysis = useStore((state) => state.aiAnalysis);
@@ -51,18 +53,48 @@ export default function EditorPanel() {
   useEffect(() => {
     const currentLine = timeline[currentStepIndex]?.line;
 
-    if (editorRef.current && decorationsRef.current && monacoRef.current && status === 'READY') {
-      const breakpointDecorations = breakpoints.map((line) => ({
-        range: new monacoRef.current!.Range(line, 1, line, 1),
-        options: {
-          glyphMarginClassName: 'breakpoint-glyph',
-          glyphMarginHoverMessage: { value: `${line}번째 줄의 재생 중단점` },
-        },
-      }));
+    if (!decorationsRef.current || !monacoRef.current) {
+      return;
+    }
 
+    const monaco = monacoRef.current;
+    const codeLines = code.split('\n');
+
+    const breakpointDecorations = breakpoints.map((line) => ({
+      range: new monaco.Range(line, 1, line, 1),
+      options: {
+        glyphMarginClassName: 'breakpoint-glyph',
+        glyphMarginHoverMessage: { value: `${line}번째 줄의 재생 중단점` },
+      },
+    }));
+
+    const errorDecorations = errorLine
+      ? [{
+        range: new monaco.Range(errorLine, 1, errorLine, 1),
+        options: {
+          isWholeLine: true,
+          className: 'compile-error-line-highlight',
+          glyphMarginClassName: 'compile-error-glyph',
+          glyphMarginHoverMessage: { value: `${errorLine}번째 줄${errorColumn ? ` ${errorColumn}번째 열` : ''}에서 컴파일 오류가 발생했습니다.` },
+        },
+      }, {
+        range: new monaco.Range(
+          errorLine,
+          Math.max(errorColumn ?? 1, 1),
+          errorLine,
+          Math.min(Math.max(errorColumn ?? 1, 1) + 1, (codeLines[errorLine - 1]?.length ?? 0) + 1),
+        ),
+        options: {
+          inlineClassName: 'compile-error-inline-highlight',
+          hoverMessage: { value: `${errorLine}번째 줄${errorColumn ? ` ${errorColumn}번째 열` : ''} 근처 문법을 확인하세요.` },
+        },
+      }]
+      : [];
+
+    if (editorRef.current && status === 'READY') {
       if (!currentLine) {
         decorationsRef.current.clear();
-        decorationsRef.current.set(breakpointDecorations);
+        decorationsRef.current.set([...breakpointDecorations, ...errorDecorations]);
         return;
       }
 
@@ -77,8 +109,9 @@ export default function EditorPanel() {
       decorationsRef.current.clear();
       decorationsRef.current.set([
         ...breakpointDecorations,
+        ...errorDecorations,
         {
-          range: new monacoRef.current.Range(currentLine, 1, currentLine, 1),
+          range: new monaco.Range(currentLine, 1, currentLine, 1),
           options: {
             isWholeLine: true,
             className: emphasisClass,
@@ -88,19 +121,18 @@ export default function EditorPanel() {
       ]);
       
       editorRef.current.revealLineInCenterIfOutsideViewport(currentLine);
-    } else if (decorationsRef.current && monacoRef.current) {
+    } else {
       decorationsRef.current.clear();
-      decorationsRef.current.set(
-        breakpoints.map((line) => ({
-          range: new monacoRef.current!.Range(line, 1, line, 1),
-          options: {
-            glyphMarginClassName: 'breakpoint-glyph',
-            glyphMarginHoverMessage: { value: `${line}번째 줄의 재생 중단점` },
-          },
-        })),
-      );
+      decorationsRef.current.set([...breakpointDecorations, ...errorDecorations]);
+
+      if (errorLine && editorRef.current) {
+        editorRef.current.revealLineInCenterIfOutsideViewport(errorLine);
+        if (errorColumn) {
+          editorRef.current.setPosition({ lineNumber: errorLine, column: errorColumn });
+        }
+      }
     }
-  }, [breakpoints, currentMeta?.eventKind, currentMeta?.hasBreakpoint, currentStepIndex, timeline, status]);
+  }, [breakpoints, code, currentMeta?.eventKind, currentMeta?.hasBreakpoint, currentStepIndex, errorColumn, errorLine, timeline, status]);
 
   const handleAiAnalysis = async () => {
     if (!isAuthenticated) {

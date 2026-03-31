@@ -32,6 +32,10 @@ export interface TraceSnapshot {
   io_event?: IOEntry;
   exception?: string;
   return_value?: unknown;
+  error_type?: string;
+  error_message?: string;
+  text?: string;
+  offset?: number;
 }
 
 export type OutputMode = 'step-sync' | 'replay';
@@ -86,6 +90,10 @@ interface StoreState {
   clearOutput: () => void;
   error: string | null;
   setError: (error: string | null) => void;
+  errorLine: number | null;
+  setErrorLine: (line: number | null) => void;
+  errorColumn: number | null;
+  setErrorColumn: (column: number | null) => void;
   outputMode: OutputMode;
   setOutputMode: (outputMode: OutputMode) => void;
   educationalMode: boolean;
@@ -342,6 +350,10 @@ export const useStore = create<StoreState>((set) => ({
   clearOutput: () => set({ output: [] }),
   error: null,
   setError: (error) => set({ error }),
+  errorLine: null,
+  setErrorLine: (errorLine) => set({ errorLine }),
+  errorColumn: null,
+  setErrorColumn: (errorColumn) => set({ errorColumn }),
   outputMode: 'step-sync',
   setOutputMode: (outputMode) => set({ outputMode }),
   educationalMode: true,
