@@ -40,6 +40,8 @@ export interface TraceSnapshot {
 
 export type OutputMode = 'step-sync' | 'replay';
 
+export type ThemeMode = 'light' | 'dark';
+
 export interface FunctionHistoryItem {
   stepIndex: number;
   type: 'call' | 'return' | 'exception';
@@ -96,6 +98,8 @@ interface StoreState {
   setErrorColumn: (column: number | null) => void;
   outputMode: OutputMode;
   setOutputMode: (outputMode: OutputMode) => void;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
   educationalMode: boolean;
   setEducationalMode: (enabled: boolean) => void;
   breakpoints: number[];
@@ -135,6 +139,26 @@ const signatureOf = (value: unknown): string => {
     return JSON.stringify(normalizeForCompare(value));
   } catch {
     return String(value);
+  }
+};
+
+const getInitialTheme = (): ThemeMode => {
+  if (typeof window === 'undefined') return 'light';
+
+  try {
+    const storedTheme = window.localStorage.getItem('theme');
+    return storedTheme === 'dark' ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
+};
+
+const persistTheme = (theme: ThemeMode): void => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem('theme', theme);
+  } catch {
   }
 };
 
@@ -356,6 +380,11 @@ export const useStore = create<StoreState>((set) => ({
   setErrorColumn: (errorColumn) => set({ errorColumn }),
   outputMode: 'step-sync',
   setOutputMode: (outputMode) => set({ outputMode }),
+  theme: getInitialTheme(),
+  setTheme: (theme) => {
+    persistTheme(theme);
+    set({ theme });
+  },
   educationalMode: true,
   setEducationalMode: (enabled) => set({ educationalMode: enabled }),
   breakpoints: [],

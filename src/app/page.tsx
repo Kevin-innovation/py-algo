@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from 'next/link';
 import EditorPanel from "../components/EditorPanel";
 import ControlBar from "../components/ControlBar";
 import Visualizer from "../components/Visualizer";
 import Terminal from "../components/Terminal";
+import ThemeToggle from "../components/ThemeToggle";
 import { useStore } from "../store/useStore";
 
 export default function Home() {
@@ -23,7 +25,12 @@ export default function Home() {
     setErrorLine,
     setErrorColumn,
     setTimeline,
+    theme,
   } = useStore();
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     workerRef.current = new Worker("/pyodideWorker.js?v=" + Date.now());
@@ -128,18 +135,35 @@ export default function Home() {
 
   return (
     <div className="flex h-full bg-gray-900 overflow-hidden flex-col w-full">
-      <div className="h-14 bg-gray-800 border-b border-gray-700 flex items-center px-6 justify-between shadow-sm shrink-0">
+      <div className="h-14 bg-gray-800 border-b border-gray-700 flex items-center px-6 justify-between shadow-sm shrink-0" data-testid="app-header">
         <h1 className="text-white font-bold text-2xl tracking-tight flex items-baseline gap-2">
           <span><span className="text-orange-500">DLAB</span> <span className="text-blue-500">Py</span>Algo</span>
           <span className="text-sm font-medium text-gray-400 tracking-normal">visualization by Kevin</span>
         </h1>
-        <button
-          onClick={runCode}
-          disabled={status === "LOADING" || status === "RUNNING" || status === "WAITING_INPUT"}
-          className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-md font-semibold disabled:opacity-50 transition-colors"
-        >
-          {status === "RUNNING" ? "실행 중..." : status === "WAITING_INPUT" ? "입력 대기 중" : "코드 실행"}
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="text-sm text-white bg-gray-700 hover:bg-gray-600 rounded px-3 py-1 transition-colors"
+            data-testid="nav-editor"
+          >
+            에디터
+          </Link>
+          <Link
+            href="/learn"
+            className="text-sm text-gray-200 bg-gray-700 hover:bg-gray-600 rounded px-3 py-1 transition-colors"
+            data-testid="nav-learn"
+          >
+            학습
+          </Link>
+          <ThemeToggle />
+          <button
+            onClick={runCode}
+            disabled={status === "LOADING" || status === "RUNNING" || status === "WAITING_INPUT"}
+            className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-md font-semibold disabled:opacity-50 transition-colors"
+          >
+            {status === "RUNNING" ? "실행 중..." : status === "WAITING_INPUT" ? "입력 대기 중" : "코드 실행"}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-row overflow-hidden min-h-0">

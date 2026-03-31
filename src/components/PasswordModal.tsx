@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface Props {
   isOpen: boolean;
@@ -12,14 +12,26 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: Props) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '4490') {
+    try {
+      const response = await fetch('/api/analyze/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({} as { error?: string }));
+        setError(data.error ?? '패스워드가 일치하지 않습니다.');
+        return;
+      }
+
       onSuccess();
       setPassword('');
       setError('');
-    } else {
-      setError('패스워드가 일치하지 않습니다.');
+    } catch {
+      setError('인증 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     }
   };
 

@@ -21,6 +21,7 @@ export default function EditorPanel() {
   const setAuthenticated = useStore((state) => state.setAuthenticated);
   const aiAnalysis = useStore((state) => state.aiAnalysis);
   const setAiAnalysis = useStore((state) => state.setAiAnalysis);
+  const theme = useStore((state) => state.theme);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -134,12 +135,7 @@ export default function EditorPanel() {
     }
   }, [breakpoints, code, currentMeta?.eventKind, currentMeta?.hasBreakpoint, currentStepIndex, errorColumn, errorLine, timeline, status]);
 
-  const handleAiAnalysis = async () => {
-    if (!isAuthenticated) {
-      setIsModalOpen(true);
-      return;
-    }
-
+  const runAiAnalysis = async () => {
     if (!code.trim()) return;
 
     setIsAiLoading(true);
@@ -150,10 +146,16 @@ export default function EditorPanel() {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, password: '4490' })
+        body: JSON.stringify({ code })
       });
 
       const data = await response.json();
+
+      if (response.status === 401) {
+        setAuthenticated(false);
+        setIsModalOpen(true);
+        throw new Error(data.error || 'AI 분석 인증이 만료되었습니다.');
+      }
       
       if (!response.ok) {
         throw new Error(data.error || '분석 실패');
@@ -169,6 +171,15 @@ export default function EditorPanel() {
     } finally {
       setIsAiLoading(false);
     }
+  };
+
+  const handleAiAnalysis = async () => {
+    if (!isAuthenticated) {
+      setIsModalOpen(true);
+      return;
+    }
+
+    await runAiAnalysis();
   };
 
   return (
@@ -193,7 +204,7 @@ export default function EditorPanel() {
         <Editor
           height="100%"
           defaultLanguage="python"
-          theme="vs-dark"
+          theme={theme === 'dark' ? 'vs-dark' : 'vs'}
           value={code}
           onChange={(value) => setCode(value || '')}
           onMount={handleEditorDidMount}
@@ -218,9 +229,10 @@ export default function EditorPanel() {
         onSuccess={() => {
           setIsModalOpen(false);
           setAuthenticated(true);
-          handleAiAnalysis();
+          runAiAnalysis();
         }}
       />
+
     </div>
   );
 }
