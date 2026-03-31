@@ -47,6 +47,19 @@ describe('/learn page', () => {
     expect(pushMock.mock.calls[0][0]).toContain('/learn?algo=');
   });
 
+  it('changes query when selecting algorithm item in sidebar', () => {
+    render(<LearnPageClient />);
+
+    const algorithmItems = screen.getAllByTestId('algorithm-item');
+    const secondItem = algorithmItems[1];
+    const selectedAlgorithmId = secondItem.getAttribute('data-algorithm');
+
+    fireEvent.click(secondItem);
+
+    expect(pushMock).toHaveBeenCalledTimes(1);
+    expect(pushMock.mock.calls[0][0]).toBe(`/learn?algo=${selectedAlgorithmId}`);
+  });
+
   it('navigates to editor and writes code when run-in-editor clicked', () => {
     render(<LearnPageClient />);
     fireEvent.click(screen.getAllByTestId('run-in-editor-btn')[0]);

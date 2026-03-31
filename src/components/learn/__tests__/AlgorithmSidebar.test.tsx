@@ -2,6 +2,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import AlgorithmSidebar from '../AlgorithmSidebar';
 import { CATEGORIES } from '../../../data/categories';
+import { getAlgorithmsByCategory } from '../../../data/algorithms/index';
 
 describe('AlgorithmSidebar', () => {
   afterEach(() => {
@@ -10,10 +11,13 @@ describe('AlgorithmSidebar', () => {
 
   it('renders all six categories', () => {
     render(
-      <AlgorithmSidebar
-        selectedCategory={null}
-        onSelectCategory={() => {}}
-      />
+        <AlgorithmSidebar
+          selectedCategory={null}
+          selectedAlgorithmId={null}
+          algorithmsInCategory={[]}
+          onSelectCategory={() => {}}
+          onSelectAlgorithm={() => {}}
+        />
     );
 
     expect(screen.getByTestId('algorithm-sidebar')).toBeDefined();
@@ -32,10 +36,13 @@ describe('AlgorithmSidebar', () => {
   it('highlights the selected category', () => {
     const selectedId = CATEGORIES[0].id;
     render(
-      <AlgorithmSidebar
-        selectedCategory={selectedId}
-        onSelectCategory={() => {}}
-      />
+        <AlgorithmSidebar
+          selectedCategory={selectedId}
+          selectedAlgorithmId={null}
+          algorithmsInCategory={getAlgorithmsByCategory(selectedId)}
+          onSelectCategory={() => {}}
+          onSelectAlgorithm={() => {}}
+        />
     );
 
     const items = screen.getAllByTestId('category-item');
@@ -51,10 +58,13 @@ describe('AlgorithmSidebar', () => {
   it('emits selection changes on click', () => {
     const handleSelect = vi.fn();
     render(
-      <AlgorithmSidebar
-        selectedCategory={null}
-        onSelectCategory={handleSelect}
-      />
+        <AlgorithmSidebar
+          selectedCategory={null}
+          selectedAlgorithmId={null}
+          algorithmsInCategory={[]}
+          onSelectCategory={handleSelect}
+          onSelectAlgorithm={() => {}}
+        />
     );
 
     const targetCategory = CATEGORIES[2];
@@ -65,5 +75,27 @@ describe('AlgorithmSidebar', () => {
     
     expect(handleSelect).toHaveBeenCalledTimes(1);
     expect(handleSelect).toHaveBeenCalledWith(targetCategory.id);
+  });
+
+  it('renders and emits algorithm selection in selected category', () => {
+    const handleSelectAlgorithm = vi.fn();
+    const selectedId = 'sorting';
+    const sortingAlgorithms = getAlgorithmsByCategory(selectedId);
+
+    render(
+      <AlgorithmSidebar
+        selectedCategory={selectedId}
+        selectedAlgorithmId={sortingAlgorithms[0]?.id ?? null}
+        algorithmsInCategory={sortingAlgorithms}
+        onSelectCategory={() => {}}
+        onSelectAlgorithm={handleSelectAlgorithm}
+      />
+    );
+
+    const algorithmItems = screen.getAllByTestId('algorithm-item');
+    expect(algorithmItems.length).toBe(sortingAlgorithms.length);
+
+    fireEvent.click(algorithmItems[1]);
+    expect(handleSelectAlgorithm).toHaveBeenCalledWith(sortingAlgorithms[1].id);
   });
 });

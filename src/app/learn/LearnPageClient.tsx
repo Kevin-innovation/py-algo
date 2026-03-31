@@ -49,6 +49,10 @@ export default function LearnPageClient() {
     router.push(`/learn?algo=${first.id}`);
   };
 
+  const handleSelectAlgorithm = (algorithmId: string) => {
+    router.push(`/learn?algo=${algorithmId}`);
+  };
+
   const handleRunInEditor = (algorithmCode: string) => {
     setCode(algorithmCode);
     router.push('/');
@@ -82,7 +86,13 @@ export default function LearnPageClient() {
       </div>
 
       <div className="flex-1 flex overflow-hidden min-h-0">
-        <AlgorithmSidebar selectedCategory={selectedCategory} onSelectCategory={handleSelectCategory} />
+        <AlgorithmSidebar
+          selectedCategory={selectedCategory}
+          selectedAlgorithmId={selectedAlgorithmId}
+          algorithmsInCategory={algorithmsInCategory}
+          onSelectCategory={handleSelectCategory}
+          onSelectAlgorithm={handleSelectAlgorithm}
+        />
         <div className="flex-1 min-h-0">
           {selectedAlgorithm ? (
             <AlgorithmDetail
