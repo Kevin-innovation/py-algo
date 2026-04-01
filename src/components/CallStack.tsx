@@ -47,8 +47,8 @@ export default function CallStack() {
               exit={{ opacity: 0, x: -20 }}
               className="bg-background rounded-lg p-3 shadow-md border border-border"
             >
-              <div className="font-semibold text-blue-300 mb-2 border-b border-gray-600 pb-1">
-                {frame.func_name} <span className="text-gray-400 text-sm ml-2">{frame.line}번째 줄</span>
+              <div className="mb-2 border-b border-border pb-1 font-semibold text-[var(--trace-call-text)]">
+                {frame.func_name} <span className="ml-2 text-sm text-foreground-secondary">{frame.line}번째 줄</span>
               </div>
               <div className="flex flex-col gap-1">
                 {Object.entries(frame.locals || {}).map(([varName, val]) => {
@@ -58,21 +58,21 @@ export default function CallStack() {
                     <motion.div
                       layout
                       key={varName}
-                      className={`flex flex-row items-center gap-2 font-mono text-sm rounded px-1 ${changed ? 'bg-emerald-500/10 ring-1 ring-emerald-400/60' : ''}`}
+                      className={`flex flex-row items-center gap-2 rounded px-1 font-mono text-sm ${changed ? 'bg-[var(--trace-stdout-bg)] ring-1 ring-[var(--trace-stdout-border)]' : ''}`}
                     >
-                      <span className={changed ? 'text-emerald-200 font-semibold' : 'text-green-300'}>{varName}</span>
-                      <span className="text-white">=</span>
+                      <span className={changed ? 'font-semibold text-[var(--trace-stdout-text)]' : 'text-[var(--trace-stdout-text)]'}>{varName}</span>
+                      <span className="text-foreground">=</span>
                       {localVal.ref ? (
                         <span
                           id={`var-${frame.func_name}-${frameIdx}-${varName}`}
-                          className={changed ? 'text-fuchsia-300 cursor-pointer hover:underline' : 'text-purple-400 cursor-pointer hover:underline'}
+                          className={changed ? 'cursor-pointer text-[var(--trace-return-text)] hover:underline' : 'cursor-pointer text-[var(--trace-return-text)] hover:underline'}
                         >
                           포인터
                         </span>
                       ) : (
-                        <span className={changed ? 'text-amber-200 font-semibold' : 'text-yellow-300'}>{String(localVal.value)}</span>
+                        <span className={changed ? 'font-semibold text-[var(--trace-stdin-text)]' : 'text-[var(--trace-stdin-text)]'}>{String(localVal.value)}</span>
                       )}
-                      {changed ? <span className="text-[10px] uppercase tracking-wide text-emerald-300">변경됨</span> : null}
+                      {changed ? <span className="text-[10px] uppercase tracking-wide text-[var(--trace-stdout-text)]">변경됨</span> : null}
                     </motion.div>
                   );
                 })}

@@ -38,7 +38,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
   };
 
   return (
-    <div className="h-56 shrink-0 flex flex-col overflow-y-auto border-t border-border bg-background px-4 py-3 font-mono text-[var(--text-body)] text-emerald-400">
+    <div className="h-56 shrink-0 flex flex-col overflow-y-auto border-t border-border bg-background px-4 py-3 font-mono text-[var(--text-body)] text-foreground">
       <div className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-border pb-2 text-[var(--text-small)] text-foreground-secondary">
         <span>출력 타임라인</span>
         {status === 'READY' && timeline.length > 0 ? (
@@ -66,7 +66,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
             return (
               <div
                 key={`${entry.kind}-${idx}`}
-                className={`rounded-[var(--radius-md)] border px-3 py-2 shadow-sm ${entry.kind === 'stdin' ? 'border-amber-600/30 bg-amber-100/20 text-amber-700' : 'border-emerald-600/30 bg-emerald-100/20 text-emerald-700'} ${isCursor ? 'ring-1 ring-accent/70' : ''}`}
+                className={`rounded-[var(--radius-md)] border px-3 py-2 shadow-sm ${entry.kind === 'stdin' ? 'border-[color:var(--trace-stdin-border)] bg-[color:var(--trace-stdin-bg)] text-[var(--trace-stdin-text)]' : 'border-[color:var(--trace-stdout-border)] bg-[color:var(--trace-stdout-bg)] text-[var(--trace-stdout-text)]'} ${isCursor ? 'ring-1 ring-accent/70' : ''}`}
               >
                 <span className="mr-2 text-[var(--text-small)] uppercase tracking-wider opacity-80">
                   {entry.kind} #{idx + 1}
@@ -82,7 +82,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
           {timelineOutput.map((entry, idx) => (
             <span
               key={`${entry.kind}-${idx}`}
-              className={entry.kind === 'stdin' ? 'text-yellow-300' : 'text-green-400'}
+              className={entry.kind === 'stdin' ? 'text-[var(--trace-stdin-text)]' : 'text-[var(--trace-stdout-text)]'}
             >
               {entry.text}
             </span>
@@ -91,14 +91,14 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
       )}
       
       {error && (
-        <div className="mt-2 whitespace-pre-wrap break-words rounded-[var(--radius-md)] border border-red-900/40 bg-red-950/20 px-3 py-2 text-red-300">
+        <div className="mt-2 whitespace-pre-wrap break-words rounded-[var(--radius-md)] border border-[color:var(--trace-error-border)] bg-[color:var(--trace-error-bg)] px-3 py-2 text-[var(--trace-error-text)]">
           오류{errorLine ? ` (라인 ${errorLine}${errorColumn ? `, 열 ${errorColumn}` : ''})` : ''}: {error}
         </div>
       )}
       
       {status === 'WAITING_INPUT' && (
         <div className="flex flex-col mt-2">
-          <div className="mb-2 flex items-center gap-2 rounded-[var(--radius-md)] border border-amber-800/40 bg-amber-950/20 px-3 py-2 text-amber-200 animate-pulse">
+          <div className="mb-2 flex items-center gap-2 rounded-[var(--radius-md)] border border-[color:var(--trace-stdin-border)] bg-[color:var(--trace-stdin-bg)] px-3 py-2 text-[var(--trace-stdin-text)] animate-pulse">
             <span className="relative flex h-3 w-3">
               <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping"></span>
               <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500"></span>
@@ -106,7 +106,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
             입력을 위해 프로그램이 일시 중지되었습니다. 아래에 입력하고 Enter를 누르세요.
           </div>
           {latestInputEntry?.prompt ? (
-            <div className="mb-2 rounded-[var(--radius-md)] border border-border bg-panel-alt px-3 py-1.5 text-[var(--text-small)] text-amber-200 shadow-sm">
+            <div className="mb-2 rounded-[var(--radius-md)] border border-border bg-panel-alt px-3 py-1.5 text-[var(--text-small)] text-[var(--trace-stdin-text)] shadow-sm">
               프롬프트: {latestInputEntry.prompt}
             </div>
           ) : null}

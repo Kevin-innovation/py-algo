@@ -19,6 +19,19 @@
   --warning: #f5a623;
   --error: #e00;
 
+  --trace-stdout-text: #047857;
+  --trace-stdout-bg: #ecfdf5;
+  --trace-stdout-border: #6ee7b7;
+  --trace-stdin-text: #92400e;
+  --trace-stdin-bg: #fffbeb;
+  --trace-stdin-border: #fcd34d;
+  --trace-call-text: #0369a1;
+  --trace-return-text: #6d28d9;
+  --trace-exception-text: #be123c;
+  --trace-error-text: #b91c1c;
+  --trace-error-bg: #fef2f2;
+  --trace-error-border: #fca5a5;
+
   /* Layout */
   --sidebar-width: 250px;
   --header-height: 64px;
@@ -42,6 +55,19 @@
   --success: #3291ff;
   --warning: #f5a623;
   --error: #ff0000;
+
+  --trace-stdout-text: #6ee7b7;
+  --trace-stdout-bg: rgba(16, 185, 129, 0.18);
+  --trace-stdout-border: rgba(16, 185, 129, 0.5);
+  --trace-stdin-text: #fbbf24;
+  --trace-stdin-bg: rgba(245, 158, 11, 0.18);
+  --trace-stdin-border: rgba(245, 158, 11, 0.5);
+  --trace-call-text: #7dd3fc;
+  --trace-return-text: #c4b5fd;
+  --trace-exception-text: #fb7185;
+  --trace-error-text: #fca5a5;
+  --trace-error-bg: rgba(239, 68, 68, 0.18);
+  --trace-error-border: rgba(248, 113, 113, 0.5);
 }
 
 @theme inline {

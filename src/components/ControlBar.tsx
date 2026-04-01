@@ -4,12 +4,12 @@ import { useMemo } from 'react';
 import { buildCurrentStepMetadata, buildTimelineMetadata, useStore } from '../store/useStore';
 
 const eventMarkerClass = (eventKind: string): string => {
-  if (eventKind === 'stdout') return 'bg-emerald-400';
-  if (eventKind === 'stdin') return 'bg-amber-400';
-  if (eventKind === 'call') return 'bg-sky-400';
-  if (eventKind === 'return') return 'bg-violet-400';
-  if (eventKind === 'exception' || eventKind === 'uncaught_exception') return 'bg-rose-500';
-  return 'bg-gray-500';
+  if (eventKind === 'stdout') return 'bg-[var(--trace-stdout-text)]';
+  if (eventKind === 'stdin') return 'bg-[var(--trace-stdin-text)]';
+  if (eventKind === 'call') return 'bg-[var(--trace-call-text)]';
+  if (eventKind === 'return') return 'bg-[var(--trace-return-text)]';
+  if (eventKind === 'exception' || eventKind === 'uncaught_exception') return 'bg-[var(--trace-exception-text)]';
+  return 'bg-foreground-secondary';
 };
 
 export default function ControlBar() {
@@ -87,7 +87,7 @@ export default function ControlBar() {
 
         <div className="flex-1 rounded-[var(--radius-md)] border border-border bg-background px-3 py-2 text-right font-mono text-[var(--text-small)] text-foreground-secondary shadow-sm">
           단계 {currentStepIndex + 1} / {timeline.length}
-          {currentMeta?.loopIteration ? <span className="text-amber-300 ml-3">루프 #{currentMeta.loopIteration}</span> : null}
+          {currentMeta?.loopIteration ? <span className="ml-3 text-[var(--trace-stdin-text)]">루프 #{currentMeta.loopIteration}</span> : null}
         </div>
 
         <label className="flex items-center gap-2 text-[var(--text-small)] text-foreground-secondary whitespace-nowrap">
@@ -120,7 +120,7 @@ export default function ControlBar() {
                 key={`marker-${idx}`}
                 type="button"
                 onClick={() => setCurrentStepIndex(idx)}
-                className={`pointer-events-auto absolute top-0 h-3 w-1 rounded-sm ${eventMarkerClass(step.eventKind)} ${idx === currentStepIndex ? 'ring-1 ring-white' : ''}`}
+                className={`pointer-events-auto absolute top-0 h-3 w-1 rounded-sm ${eventMarkerClass(step.eventKind)} ${idx === currentStepIndex ? 'ring-1 ring-accent' : ''}`}
                 style={{ left: `${leftPercent}%` }}
                 title={`단계 ${idx + 1}: ${step.line}번째 줄에서 ${step.eventKind}`}
               >
@@ -153,7 +153,7 @@ export default function ControlBar() {
       ) : null}
 
       <div className="text-[var(--text-small)] text-foreground-secondary">
-        이벤트 색상: <span className="text-emerald-300">stdout</span>, <span className="text-amber-300">stdin</span>, <span className="text-sky-300">call</span>, <span className="text-violet-300">return</span>, <span className="text-rose-400">exception</span>
+        이벤트 색상: <span className="text-[var(--trace-stdout-text)]">stdout</span>, <span className="text-[var(--trace-stdin-text)]">stdin</span>, <span className="text-[var(--trace-call-text)]">call</span>, <span className="text-[var(--trace-return-text)]">return</span>, <span className="text-[var(--trace-exception-text)]">exception</span>
       </div>
     </div>
   );
