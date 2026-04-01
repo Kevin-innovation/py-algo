@@ -10,15 +10,13 @@ const createReq = (password: string) => new Request('http://localhost/api/analyz
 describe('POST /api/analyze/auth', () => {
   beforeEach(() => {
     process.env.AI_ANALYZE_PASSWORD = 'test-password';
-    process.env.AI_ANALYZE_SESSION_SECRET = 'test-session-secret';
   });
 
   it('sets auth cookie on valid password', async () => {
     const res = await POST(createReq('test-password'));
     expect(res.status).toBe(200);
     const cookieHeader = res.headers.get('set-cookie') ?? '';
-    expect(cookieHeader).toContain('ai_analyze_auth=');
-    expect(cookieHeader).not.toContain('ai_analyze_auth=1');
+    expect(cookieHeader).toContain('ai_analyze_auth=1');
   });
 
   it('returns 401 on invalid password', async () => {
@@ -28,13 +26,12 @@ describe('POST /api/analyze/auth', () => {
 
   it('returns config-missing error when auth env is not set', async () => {
     delete process.env.AI_ANALYZE_PASSWORD;
-    delete process.env.AI_ANALYZE_SESSION_SECRET;
 
     const res = await POST(createReq('anything'));
     expect(res.status).toBe(500);
 
     const body = await res.json() as { code?: string; missing?: string[] };
     expect(body.code).toBe('AUTH_CONFIG_MISSING');
-    expect(body.missing).toEqual(expect.arrayContaining(['AI_ANALYZE_PASSWORD', 'AI_ANALYZE_SESSION_SECRET']));
+    expect(body.missing).toEqual(expect.arrayContaining(['AI_ANALYZE_PASSWORD']));
   });
 });

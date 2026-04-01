@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server';
 import { AI_ANALYZE_AUTH_COOKIE } from '../route';
-import { createAnalyzeAuthToken } from '../auth-token';
 
 export async function POST(req: Request) {
   try {
     const { password } = await req.json();
     const configuredPassword = process.env.AI_ANALYZE_PASSWORD;
-    const sessionSecret = process.env.AI_ANALYZE_SESSION_SECRET;
 
-    if (!configuredPassword || !sessionSecret) {
+    if (!configuredPassword) {
       const missing: string[] = [];
       if (!configuredPassword) missing.push('AI_ANALYZE_PASSWORD');
-      if (!sessionSecret) missing.push('AI_ANALYZE_SESSION_SECRET');
 
       return NextResponse.json({
         error: '서버 인증 설정이 누락되었습니다.',
@@ -24,11 +21,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '패스워드가 일치하지 않습니다.' }, { status: 401 });
     }
 
-    const token = createAnalyzeAuthToken(sessionSecret);
     const response = NextResponse.json({ ok: true });
     response.cookies.set({
       name: AI_ANALYZE_AUTH_COOKIE,
-      value: token,
+      value: '1',
       httpOnly: true,
       sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',

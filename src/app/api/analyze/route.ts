@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { verifyAnalyzeAuthToken } from './auth-token';
 
 export const maxDuration = 60; // Vercel Serverless Function Timeout 설정 (60초)
 export const AI_ANALYZE_AUTH_COOKIE = 'ai_analyze_auth';
@@ -157,17 +156,13 @@ const generateWithRetry = async (
 export async function POST(req: Request) {
   try {
     const apiKey = process.env.GEMINI_API_KEY || '';
-    const sessionSecret = process.env.AI_ANALYZE_SESSION_SECRET || '';
     if (!apiKey) {
       return NextResponse.json({ error: 'GEMINI_API_KEY가 설정되지 않았습니다.' }, { status: 500 });
-    }
-    if (!sessionSecret) {
-      return NextResponse.json({ error: 'AI 분석 인증 시크릿이 설정되지 않았습니다.' }, { status: 500 });
     }
 
     const cookieStore = await cookies();
     const authToken = cookieStore.get(AI_ANALYZE_AUTH_COOKIE)?.value;
-    const isAuthenticated = authToken ? verifyAnalyzeAuthToken(authToken, sessionSecret) : false;
+    const isAuthenticated = authToken === '1';
     if (!isAuthenticated) {
       return NextResponse.json({ error: 'AI 분석 인증이 필요합니다.' }, { status: 401 });
     }

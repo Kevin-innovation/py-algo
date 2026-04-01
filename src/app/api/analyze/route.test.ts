@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createAnalyzeAuthToken } from './auth-token';
 
 const generateContentMock = vi.fn();
 const cookiesMock = vi.fn();
@@ -34,11 +33,9 @@ const createResponsePayload = (text: string, finishReason = 'STOP') => ({
 describe('POST /api/analyze', () => {
   beforeEach(() => {
     process.env.GEMINI_API_KEY = 'test-key';
-    process.env.AI_ANALYZE_SESSION_SECRET = 'test-session-secret';
     generateContentMock.mockReset();
-    const token = createAnalyzeAuthToken(process.env.AI_ANALYZE_SESSION_SECRET);
     cookiesMock.mockReturnValue({
-      get: (name: string) => (name === 'ai_analyze_auth' ? { value: token } : undefined),
+      get: (name: string) => (name === 'ai_analyze_auth' ? { value: '1' } : undefined),
     });
   });
 

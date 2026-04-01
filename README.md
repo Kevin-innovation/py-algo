@@ -56,12 +56,10 @@ bun run dev
 ```bash
 GEMINI_API_KEY=...
 AI_ANALYZE_PASSWORD=...
-AI_ANALYZE_SESSION_SECRET=...
 ```
 
 - `GEMINI_API_KEY`: Gemini API 호출 키
 - `AI_ANALYZE_PASSWORD`: AI 분석 인증용 비밀번호
-- `AI_ANALYZE_SESSION_SECRET`: 인증 쿠키 서명용 시크릿
 
 ## 스크립트
 
