@@ -85,6 +85,18 @@ export default function LearnPageClient() {
           </nav>
           <div className="w-px h-4 bg-border"></div>
           <ThemeToggle />
+          <button
+            onClick={() => {
+              if (selectedAlgorithm) {
+                handleRunInEditor(selectedAlgorithm.code);
+                return;
+              }
+              router.push('/');
+            }}
+            className="inline-flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-accent px-4 text-[var(--text-body)] font-medium text-accent-foreground shadow-sm transition-colors hover:opacity-90"
+          >
+            코드 실행
+          </button>
         </div>
       </div>
 
