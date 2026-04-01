@@ -25,4 +25,16 @@ describe('POST /api/analyze/auth', () => {
     const res = await POST(createReq('wrong'));
     expect(res.status).toBe(401);
   });
+
+  it('returns config-missing error when auth env is not set', async () => {
+    delete process.env.AI_ANALYZE_PASSWORD;
+    delete process.env.AI_ANALYZE_SESSION_SECRET;
+
+    const res = await POST(createReq('anything'));
+    expect(res.status).toBe(500);
+
+    const body = await res.json() as { code?: string; missing?: string[] };
+    expect(body.code).toBe('AUTH_CONFIG_MISSING');
+    expect(body.missing).toEqual(expect.arrayContaining(['AI_ANALYZE_PASSWORD', 'AI_ANALYZE_SESSION_SECRET']));
+  });
 });

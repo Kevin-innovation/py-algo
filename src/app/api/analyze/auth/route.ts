@@ -9,7 +9,15 @@ export async function POST(req: Request) {
     const sessionSecret = process.env.AI_ANALYZE_SESSION_SECRET;
 
     if (!configuredPassword || !sessionSecret) {
-      return NextResponse.json({ error: '서버 인증 설정이 누락되었습니다.' }, { status: 500 });
+      const missing: string[] = [];
+      if (!configuredPassword) missing.push('AI_ANALYZE_PASSWORD');
+      if (!sessionSecret) missing.push('AI_ANALYZE_SESSION_SECRET');
+
+      return NextResponse.json({
+        error: '서버 인증 설정이 누락되었습니다.',
+        code: 'AUTH_CONFIG_MISSING',
+        missing,
+      }, { status: 500 });
     }
 
     if (typeof password !== 'string' || password !== configuredPassword) {

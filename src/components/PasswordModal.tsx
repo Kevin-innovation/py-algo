@@ -22,7 +22,15 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: Props) {
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({} as { error?: string }));
+        const data = await response.json().catch(() => ({} as { error?: string; code?: string; missing?: string[] }));
+        if (data.code === 'AUTH_CONFIG_MISSING') {
+          const missingText = Array.isArray(data.missing) && data.missing.length > 0
+            ? `누락 항목: ${data.missing.join(', ')}`
+            : '필수 환경변수 확인 필요';
+          setError(`서버 관리자 설정이 필요합니다.\n${missingText}`);
+          return;
+        }
+
         setError(data.error ?? '패스워드가 일치하지 않습니다.');
         return;
       }
@@ -48,7 +56,7 @@ export default function PasswordModal({ isOpen, onClose, onSuccess }: Props) {
             className="w-full bg-background text-foreground border border-border rounded-[var(--radius-md)] p-2 mb-2 focus:outline-none focus:border-blue-500"
             autoFocus
           />
-          {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+          {error && <p className="text-red-400 text-sm mb-4 whitespace-pre-line">{error}</p>}
           <div className="flex justify-end gap-2 mt-4">
             <button
               type="button"
