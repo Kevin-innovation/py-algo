@@ -16,29 +16,24 @@ export default function CallStack() {
   const changedVarSet = new Set(currentMeta?.changedVariables ?? []);
 
   if (!currentSnapshot || !currentSnapshot.stack) {
-    if (currentSnapshot && currentSnapshot.event === 'uncaught_exception') {
+    if (currentSnapshot === undefined) {
       return (
-        <div className="flex-1 min-h-0 p-4 border-r border-gray-700 overflow-y-auto bg-gray-900">
-          <h2 className="text-xl text-red-500 font-bold mb-4">예외</h2>
-          <div className="text-red-400 font-mono text-sm whitespace-pre-wrap">{currentSnapshot.exception}</div>
+        <div className="flex-1 min-h-0 p-4 border-r border-border overflow-y-auto bg-panel">
+          <div className="flex items-center justify-center h-full">
+            <p className="text-foreground-secondary">호출 스택 정보가 없습니다.</p>
+          </div>
         </div>
       );
     }
-    return (
-      <div className="flex-1 min-h-0 p-4 border-r border-gray-700 overflow-y-auto">
-        <h2 className="text-xl text-white font-bold mb-4">호출 스택</h2>
-        <div className="text-gray-500">코드를 실행하여 스택을 확인하세요</div>
-      </div>
-    );
   }
 
   return (
-    <div className="flex-1 min-h-0 p-4 border-r border-gray-700 overflow-y-auto bg-gray-900">
+    <div className="flex-1 min-h-0 p-4 border-r border-border overflow-y-auto bg-panel">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl text-white font-bold">호출 스택</h2>
-        <div className="text-xs text-gray-400">
+        <h2 className="text-xl text-foreground font-bold">호출 스택</h2>
+        <div className="text-xs text-foreground-secondary">
           깊이 {currentMeta?.callDepth ?? currentSnapshot.stack.length}
-          {currentMeta?.loopIteration ? <span className="text-amber-300 ml-2">루프 #{currentMeta.loopIteration}</span> : null}
+          {currentMeta?.loopIteration ? <span className="text-amber-600 ml-2">루프 #{currentMeta.loopIteration}</span> : null}
         </div>
       </div>
       <div className="flex flex-col gap-4">
@@ -50,7 +45,7 @@ export default function CallStack() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="bg-gray-800 rounded-lg p-3 shadow-md border border-gray-600"
+              className="bg-background rounded-lg p-3 shadow-md border border-border"
             >
               <div className="font-semibold text-blue-300 mb-2 border-b border-gray-600 pb-1">
                 {frame.func_name} <span className="text-gray-400 text-sm ml-2">{frame.line}번째 줄</span>

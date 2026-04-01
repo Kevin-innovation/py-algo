@@ -66,7 +66,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
             return (
               <div
                 key={`${entry.kind}-${idx}`}
-                className={`rounded-[var(--radius-md)] border px-3 py-2 shadow-sm ${entry.kind === 'stdin' ? 'border-amber-800/40 bg-amber-950/20 text-amber-200' : 'border-emerald-900/40 bg-emerald-950/20 text-emerald-200'} ${isCursor ? 'ring-1 ring-accent/70' : ''}`}
+                className={`rounded-[var(--radius-md)] border px-3 py-2 shadow-sm ${entry.kind === 'stdin' ? 'border-amber-600/30 bg-amber-100/20 text-amber-700' : 'border-emerald-600/30 bg-emerald-100/20 text-emerald-700'} ${isCursor ? 'ring-1 ring-accent/70' : ''}`}
               >
                 <span className="mr-2 text-[var(--text-small)] uppercase tracking-wider opacity-80">
                   {entry.kind} #{idx + 1}
