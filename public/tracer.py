@@ -5,11 +5,45 @@ import builtins
 trace_output = []
 MAX_REPR_LEN = 100
 MAX_STEPS = 10000
+MAX_COLLECTION_ITEMS = 120
+MAX_HEAP_OBJECTS = 400
+MAX_IO_EVENTS = 300
+MAX_TRACE_BYTES = 5_000_000
 step_count = 0
 heap_objects = {}
 io_history = []
+trace_bytes = 0
+io_overflowed = False
+
+
+def truncate_repr_text(text):
+    if len(text) > MAX_REPR_LEN:
+        return text[:MAX_REPR_LEN] + "..."
+    return text
+
+
+def trim_collection(values):
+    if len(values) <= MAX_COLLECTION_ITEMS:
+        return values, 0
+    return values[:MAX_COLLECTION_ITEMS], len(values) - MAX_COLLECTION_ITEMS
+
+
+def trim_mapping_items(items):
+    if len(items) <= MAX_COLLECTION_ITEMS:
+        return items, 0
+    return items[:MAX_COLLECTION_ITEMS], len(items) - MAX_COLLECTION_ITEMS
 
 def append_io(kind, text, line=None, func_name=None, prompt=None, value=None):
+    global io_overflowed
+    if len(io_history) >= MAX_IO_EVENTS:
+        if not io_overflowed:
+            io_overflowed = True
+            io_history.append({
+                "kind": "stdout",
+                "text": "[trace] IO 기록이 너무 많아 이후 일부 항목은 생략됩니다."
+            })
+        return
+
     entry = {
         "kind": kind,
         "text": text,
@@ -35,10 +69,12 @@ def serialize_value(val):
     obj_id = get_obj_id(val)
     
     if val is None or isinstance(val, (int, float, bool, str)):
+        if isinstance(val, str):
+            val = truncate_repr_text(val)
         return {"type": val_type, "value": val, "id": obj_id}
     else:
         # Complex object -> add to heap tracking
-        if obj_id not in heap_objects:
+        if obj_id not in heap_objects and len(heap_objects) < MAX_HEAP_OBJECTS:
             heap_objects[obj_id] = val
         return {"type": val_type, "id": obj_id, "ref": True}
 
@@ -56,33 +92,56 @@ def serialize_heap_objects():
         val_type = get_type_name(obj)
         try:
             if isinstance(obj, list) or val_type == 'deque':
-                serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in obj]}
+                values, omitted = trim_collection(list(obj))
+                serialized = [serialize_value(x) for x in values]
+                payload = {"type": val_type, "id": obj_id, "value": serialized}
+                if omitted:
+                    payload["omitted_items"] = omitted
+                serialized_heap[obj_id] = payload
             elif isinstance(obj, dict) or val_type in ('Counter', 'defaultdict'):
-                serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": {str(k): serialize_value(v) for k, v in obj.items()}}
+                items, omitted = trim_mapping_items(list(obj.items()))
+                value_map = {str(k): serialize_value(v) for k, v in items}
+                payload = {"type": val_type, "id": obj_id, "value": value_map}
+                if omitted:
+                    payload["omitted_items"] = omitted
+                serialized_heap[obj_id] = payload
             elif isinstance(obj, tuple):
-                serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in obj]}
+                values, omitted = trim_collection(list(obj))
+                payload = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in values]}
+                if omitted:
+                    payload["omitted_items"] = omitted
+                serialized_heap[obj_id] = payload
             elif isinstance(obj, set):
-                serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in obj]}
+                values, omitted = trim_collection(list(obj))
+                payload = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in values]}
+                if omitted:
+                    payload["omitted_items"] = omitted
+                serialized_heap[obj_id] = payload
             elif val_type == 'ndarray':
                 if hasattr(obj, 'size') and obj.size < 100 and hasattr(obj, 'tolist'):
                     serialized_heap[obj_id] = {"type": "numpy.ndarray", "id": obj_id, "value": [serialize_value(x) for x in obj.tolist()]}
                 else:
-                    rep = repr(obj)
-                    val = rep[:MAX_REPR_LEN] + "..." if len(rep) > MAX_REPR_LEN else rep
+                    val = truncate_repr_text(repr(obj))
                     serialized_heap[obj_id] = {"type": "numpy.ndarray", "id": obj_id, "value": val}
             elif val_type == 'DataFrame':
                 if hasattr(obj, 'shape') and obj.shape[0] * obj.shape[1] < 100 and hasattr(obj, 'to_dict'):
                     serialized_heap[obj_id] = {"type": "pandas.DataFrame", "id": obj_id, "value": obj.to_dict('records')}
                 else:
-                    rep = repr(obj)
-                    val = rep[:MAX_REPR_LEN] + "..." if len(rep) > MAX_REPR_LEN else rep
+                    val = truncate_repr_text(repr(obj))
                     serialized_heap[obj_id] = {"type": "pandas.DataFrame", "id": obj_id, "value": val}
             else:
-                rep = repr(obj)
-                val = rep[:MAX_REPR_LEN] + "..." if len(rep) > MAX_REPR_LEN else rep
+                val = truncate_repr_text(repr(obj))
                 serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": val}
         except Exception:
             serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": "<unserializable>"}
+
+    if len(heap_objects) >= MAX_HEAP_OBJECTS:
+        serialized_heap["__meta__"] = {
+            "type": "trace_meta",
+            "message": "Heap object limit reached. Additional objects are omitted.",
+            "max_heap_objects": MAX_HEAP_OBJECTS,
+        }
+
     return serialized_heap
 
 def get_call_stack(frame):
@@ -132,13 +191,20 @@ def build_snapshot(frame, event, arg=None):
     return snapshot
 
 def append_snapshot(frame, event, arg=None):
-    global step_count
+    global step_count, trace_bytes
     step_count += 1
     if step_count > MAX_STEPS:
         raise RuntimeError(f"Trace limit exceeded ({MAX_STEPS} steps). Potential infinite loop.")
         
     snapshot = build_snapshot(frame, event, arg)
     if snapshot is not None:
+        encoded_len = len(json.dumps(snapshot, ensure_ascii=False))
+        trace_bytes += encoded_len
+        if trace_bytes > MAX_TRACE_BYTES:
+            raise RuntimeError(
+                f"Trace payload exceeded {MAX_TRACE_BYTES} bytes. "
+                "Use smaller inputs or simplify large data structures."
+            )
         trace_output.append(snapshot)
 
 def traced_print(*args, **kwargs):
@@ -209,11 +275,13 @@ def trace_calls(frame, event, arg):
     return trace_calls
 
 def run_traced(code_str):
-    global trace_output, heap_objects, io_history, step_count
+    global trace_output, heap_objects, io_history, step_count, trace_bytes, io_overflowed
     trace_output = []
     heap_objects = {}
     io_history = []
     step_count = 0
+    trace_bytes = 0
+    io_overflowed = False
     
     try:
         compiled_code = compile(code_str, "<string>", "exec")
@@ -263,4 +331,15 @@ def run_traced(code_str):
             "io": list(io_history)
         })
         
-    return json.dumps(trace_output)
+    try:
+        return json.dumps(trace_output)
+    except MemoryError:
+        fallback = [{
+            "event": "uncaught_exception",
+            "line": 0,
+            "error_type": "MemoryError",
+            "error_message": "실행 추적 데이터가 너무 커서 직렬화할 수 없습니다. 입력 크기를 줄이거나 큰 자료구조를 단순화해 주세요.",
+            "exception": "MemoryError('Trace serialization exceeded memory budget')",
+            "io": list(io_history)
+        }]
+        return json.dumps(fallback)
