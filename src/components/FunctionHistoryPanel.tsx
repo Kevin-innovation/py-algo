@@ -3,7 +3,15 @@
 import { useMemo } from 'react';
 import { buildTimelineMetadata, useStore } from '../store/useStore';
 
-export default function FunctionHistoryPanel() {
+interface FunctionHistoryPanelProps {
+  showAdvancedMemory: boolean;
+  onToggleAdvancedMemory: () => void;
+}
+
+export default function FunctionHistoryPanel({
+  showAdvancedMemory,
+  onToggleAdvancedMemory,
+}: FunctionHistoryPanelProps) {
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const setCurrentStepIndex = useStore((state) => state.setCurrentStepIndex);
   const timeline = useStore((state) => state.timeline);
@@ -13,7 +21,16 @@ export default function FunctionHistoryPanel() {
   if (timelineMeta.functionHistory.length === 0) {
     return (
       <div className="bg-panel border-b border-border p-3 shrink-0">
-        <div className="text-sm font-semibold text-foreground">함수 기록</div>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="text-sm font-semibold text-foreground">함수 기록</div>
+          <button
+            type="button"
+            onClick={onToggleAdvancedMemory}
+            className="inline-flex h-7 items-center rounded-[var(--radius-sm)] border border-border bg-background px-2 text-[var(--text-small)] text-foreground-secondary transition-colors hover:bg-panel hover:text-foreground"
+          >
+            {showAdvancedMemory ? '메모리 뷰 숨기기' : '고급 메모리 보기'}
+          </button>
+        </div>
         <div className="text-xs text-foreground-secondary mt-1">호출 및 반환 이벤트가 여기에 표시됩니다.</div>
       </div>
     );
@@ -23,7 +40,16 @@ export default function FunctionHistoryPanel() {
     <div className="bg-panel border-b border-border p-3 shrink-0">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold text-foreground">함수 기록</h3>
-        <span className="text-[11px] text-foreground-secondary">{timelineMeta.functionHistory.length}개 이벤트</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-foreground-secondary">{timelineMeta.functionHistory.length}개 이벤트</span>
+          <button
+            type="button"
+            onClick={onToggleAdvancedMemory}
+            className="inline-flex h-7 items-center rounded-[var(--radius-sm)] border border-border bg-background px-2 text-[var(--text-small)] text-foreground-secondary transition-colors hover:bg-panel hover:text-foreground"
+          >
+            {showAdvancedMemory ? '메모리 뷰 숨기기' : '고급 메모리 보기'}
+          </button>
+        </div>
       </div>
       <div className="max-h-28 overflow-y-auto space-y-1 pr-1">
         {timelineMeta.functionHistory.map((item) => {

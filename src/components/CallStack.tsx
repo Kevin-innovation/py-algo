@@ -4,7 +4,11 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { buildCurrentStepMetadata, useStore, HeapObject } from '../store/useStore';
 
-export default function CallStack() {
+interface CallStackProps {
+  showHeapPanel?: boolean;
+}
+
+export default function CallStack({ showHeapPanel = true }: CallStackProps) {
   const timeline = useStore((state) => state.timeline);
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const breakpoints = useStore((state) => state.breakpoints);
@@ -18,7 +22,7 @@ export default function CallStack() {
   if (!currentSnapshot || !currentSnapshot.stack) {
     if (currentSnapshot === undefined) {
       return (
-        <div className="h-full min-h-0 p-4 border-r border-border overflow-y-auto bg-panel">
+        <div className={`h-full min-h-0 p-4 overflow-y-auto bg-panel ${showHeapPanel ? 'border-r border-border' : ''}`}>
           <div className="flex items-center justify-center h-full">
             <p className="text-foreground-secondary">호출 스택 정보가 없습니다.</p>
           </div>
@@ -28,7 +32,7 @@ export default function CallStack() {
   }
 
   return (
-    <div className="h-full min-h-0 p-4 border-r border-border overflow-y-auto bg-panel">
+    <div className={`h-full min-h-0 p-4 overflow-y-auto bg-panel ${showHeapPanel ? 'border-r border-border' : ''}`}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl text-foreground font-bold">호출 스택</h2>
         <div className="text-xs text-foreground-secondary">

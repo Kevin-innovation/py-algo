@@ -12,6 +12,7 @@ export default function Visualizer() {
   const draggingRef = useRef(false);
   const [leftPercent, setLeftPercent] = useState(38);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [showAdvancedMemory, setShowAdvancedMemory] = useState(false);
 
   useEffect(() => {
     const update = () => setIsDesktop(window.innerWidth >= 1024);
@@ -22,6 +23,7 @@ export default function Visualizer() {
 
   useEffect(() => {
     const handleMove = (event: MouseEvent) => {
+      if (!showAdvancedMemory) return;
       if (!draggingRef.current || !splitRef.current) return;
       const rect = splitRef.current.getBoundingClientRect();
       const raw = ((event.clientX - rect.left) / rect.width) * 100;
@@ -40,29 +42,55 @@ export default function Visualizer() {
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleUp);
     };
+  }, [showAdvancedMemory]);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem('showAdvancedMemory');
+      setShowAdvancedMemory(stored === 'true');
+    } catch {
+    }
   }, []);
+
+  const toggleAdvancedMemory = () => {
+    setShowAdvancedMemory((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem('showAdvancedMemory', String(next));
+      } catch {
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative min-h-0 bg-panel">
-      <FunctionHistoryPanel />
+      <FunctionHistoryPanel
+        showAdvancedMemory={showAdvancedMemory}
+        onToggleAdvancedMemory={toggleAdvancedMemory}
+      />
       <div ref={splitRef} className="flex-1 flex flex-row overflow-hidden relative min-h-0 bg-background">
         <Xwrapper>
-          <div className="min-h-0" style={isDesktop ? { width: `calc(${leftPercent}% - 4px)` } : undefined}>
-            <CallStack />
+          <div className="min-h-0" style={isDesktop && showAdvancedMemory ? { width: `calc(${leftPercent}% - 4px)` } : undefined}>
+            <CallStack showHeapPanel={showAdvancedMemory} />
           </div>
-          <div
-            onMouseDown={() => {
-              draggingRef.current = true;
-            }}
-            className="hidden lg:flex w-2 shrink-0 cursor-col-resize items-center justify-center"
-            aria-hidden="true"
-          >
-            <div className="h-full w-px bg-border" />
-          </div>
-          <div className="flex-1 min-h-0" style={isDesktop ? { width: `calc(${100 - leftPercent}% - 4px)` } : undefined}>
-            <Heap />
-          </div>
-          <DynamicPointers />
+          {showAdvancedMemory ? (
+            <>
+              <div
+                onMouseDown={() => {
+                  draggingRef.current = true;
+                }}
+                className="hidden lg:flex w-2 shrink-0 cursor-col-resize items-center justify-center"
+                aria-hidden="true"
+              >
+                <div className="h-full w-px bg-border" />
+              </div>
+              <div className="flex-1 min-h-0" style={isDesktop ? { width: `calc(${100 - leftPercent}% - 4px)` } : undefined}>
+                <Heap />
+              </div>
+              <DynamicPointers />
+            </>
+          ) : null}
         </Xwrapper>
       </div>
     </div>

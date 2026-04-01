@@ -226,11 +226,12 @@ const buildExplanation = (
     return `${subject}에서 루프 반복 실행 중 (현재 ${loopIteration}번째 반복)${changedVariables.length ? `, 변경된 변수: ${changedVariables.join(', ')}` : ''}.`;
   }
 
-  if (changedVariables.length > 0 || changedHeapIds.length > 0) {
-    const varText = changedVariables.length ? `변수 (${changedVariables.join(', ')})` : '';
-    const heapText = changedHeapIds.length ? `힙 객체 (${changedHeapIds.join(', ')})` : '';
-    const connector = varText && heapText ? ' 및 ' : '';
-    return `${subject}에서 상태가 변경되었습니다: ${varText}${connector}${heapText}.`;
+  if (changedVariables.length > 0) {
+    return `${subject}에서 변수 값이 변경되었습니다: ${changedVariables.join(', ')}.`;
+  }
+
+  if (changedHeapIds.length > 0) {
+    return `${subject}에서 참조된 데이터 구조가 갱신되었습니다. (고급 메모리 보기에서 상세 확인 가능)`;
   }
 
   return `${snapshot.line}번째 라인에서 ${fnName} 코드 실행을 진행합니다.`;
