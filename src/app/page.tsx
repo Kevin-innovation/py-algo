@@ -234,12 +234,15 @@ export default function Home() {
 
         <div
           ref={rightSplitRef}
-          className="w-full flex flex-col min-h-0 bg-panel border border-border rounded-[var(--radius-lg)] shadow-sm overflow-hidden"
+          className={`w-full flex flex-col min-h-0 bg-panel border border-border rounded-[var(--radius-lg)] shadow-sm ${isDesktop ? 'overflow-hidden' : 'overflow-y-auto'}`}
           style={isDesktop ? { width: `calc(${100 - mainSplitPercent}% - 4px)` } : undefined}
         >
           <ControlBar />
-          <div className="flex-1 min-h-0 flex flex-col">
-            <div className="min-h-0" style={isDesktop ? { flexBasis: `${rightTopPercent}%` } : undefined}>
+          <div className={`flex-1 min-h-0 flex flex-col ${isDesktop ? 'overflow-hidden' : 'overflow-visible'}`}>
+            <div
+              className={isDesktop ? 'min-h-0' : 'min-h-[360px] shrink-0'}
+              style={isDesktop ? { flexBasis: `${rightTopPercent}%` } : undefined}
+            >
               <Visualizer />
             </div>
             <div
@@ -251,7 +254,10 @@ export default function Home() {
             >
               <div className="w-full h-px bg-border" />
             </div>
-            <div className="min-h-0" style={isDesktop ? { flexBasis: `${100 - rightTopPercent}%` } : undefined}>
+            <div
+              className={isDesktop ? 'min-h-0' : 'min-h-[240px] shrink-0'}
+              style={isDesktop ? { flexBasis: `${100 - rightTopPercent}%` } : undefined}
+            >
               <Terminal onInputSubmit={handleInputSubmit} />
             </div>
           </div>
