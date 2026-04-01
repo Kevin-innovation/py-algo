@@ -31,6 +31,20 @@
   --trace-error-text: #b91c1c;
   --trace-error-bg: #fef2f2;
   --trace-error-border: #fca5a5;
+  --analysis-title: #111827;
+  --analysis-section: #1d4ed8;
+  --analysis-subsection: #7c3aed;
+  --analysis-body: #1f2937;
+  --analysis-muted: #4b5563;
+  --analysis-strong: #0b1220;
+  --analysis-code-text: #0f172a;
+  --analysis-code-bg: #f3f4f6;
+  --analysis-code-border: #d1d5db;
+  --analysis-quote-bg: #eff6ff;
+  --analysis-quote-border: #93c5fd;
+  --analysis-quote-text: #1e3a8a;
+  --analysis-divider: #cbd5e1;
+  --analysis-marker: #2563eb;
 
   /* Layout */
   --sidebar-width: 250px;
@@ -68,6 +82,20 @@
   --trace-error-text: #fca5a5;
   --trace-error-bg: rgba(239, 68, 68, 0.18);
   --trace-error-border: rgba(248, 113, 113, 0.5);
+  --analysis-title: #f3f4f6;
+  --analysis-section: #93c5fd;
+  --analysis-subsection: #c4b5fd;
+  --analysis-body: #d1d5db;
+  --analysis-muted: #9ca3af;
+  --analysis-strong: #ffffff;
+  --analysis-code-text: #e2e8f0;
+  --analysis-code-bg: #111827;
+  --analysis-code-border: #334155;
+  --analysis-quote-bg: #0f172a;
+  --analysis-quote-border: #60a5fa;
+  --analysis-quote-text: #bfdbfe;
+  --analysis-divider: #334155;
+  --analysis-marker: #60a5fa;
 }
 
 @theme inline {

@@ -21,8 +21,56 @@ export default function AiAnalysisPanel({ content, onClose }: Props) {
           </svg>
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto p-6 prose max-w-none prose-headings:text-foreground prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-foreground-secondary prose-a:text-accent hover:prose-a:text-accent/80 prose-strong:text-foreground prose-code:text-foreground prose-code:bg-background prose-code:border prose-code:border-border prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-pre:bg-background prose-pre:border prose-pre:border-border prose-blockquote:border-l-border prose-blockquote:bg-panel-alt prose-blockquote:px-4 prose-blockquote:py-2 prose-blockquote:not-italic prose-blockquote:text-foreground-secondary prose-li:marker:text-accent prose-hr:border-border leading-relaxed">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      <div className="flex-1 overflow-y-auto p-6">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            h1: ({ children }) => (
+              <h1 className="mb-4 text-2xl font-bold tracking-tight text-[var(--analysis-title)]">{children}</h1>
+            ),
+            h2: ({ children }) => (
+              <h2 className="mb-3 mt-10 border-l-4 border-[var(--analysis-marker)] pl-3 text-xl font-bold text-[var(--analysis-section)]">
+                {children}
+              </h2>
+            ),
+            h3: ({ children }) => (
+              <h3 className="mb-3 mt-7 text-lg font-semibold text-[var(--analysis-subsection)]">{children}</h3>
+            ),
+            p: ({ children }) => (
+              <p className="mb-4 leading-8 text-[var(--analysis-body)]">{children}</p>
+            ),
+            strong: ({ children }) => (
+              <strong className="font-semibold text-[var(--analysis-strong)]">{children}</strong>
+            ),
+            ul: ({ children }) => (
+              <ul className="mb-5 list-disc space-y-2 pl-6 marker:text-[var(--analysis-marker)]">{children}</ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="mb-5 list-decimal space-y-2 pl-6 marker:font-semibold marker:text-[var(--analysis-marker)]">{children}</ol>
+            ),
+            li: ({ children }) => (
+              <li className="text-[var(--analysis-body)] leading-8">{children}</li>
+            ),
+            hr: () => <hr className="my-8 border-[var(--analysis-divider)]" />,
+            blockquote: ({ children }) => (
+              <blockquote className="my-6 rounded-[var(--radius-md)] border-l-4 border-[var(--analysis-quote-border)] bg-[var(--analysis-quote-bg)] px-4 py-3 text-[var(--analysis-quote-text)]">
+                {children}
+              </blockquote>
+            ),
+            pre: ({ children }) => (
+              <pre className="my-4 overflow-x-auto rounded-[var(--radius-md)] border border-[var(--analysis-code-border)] bg-[var(--analysis-code-bg)] p-3">
+                {children}
+              </pre>
+            ),
+            code: ({ children }) => {
+              return (
+                <code className="rounded border border-[var(--analysis-code-border)] bg-[var(--analysis-code-bg)] px-1.5 py-0.5 text-[13px] font-medium text-[var(--analysis-code-text)]">
+                  {children}
+                </code>
+              );
+            },
+          }}
+        >
           {content}
         </ReactMarkdown>
       </div>
