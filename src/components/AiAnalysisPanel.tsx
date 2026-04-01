@@ -3,10 +3,22 @@ import remarkGfm from 'remark-gfm';
 
 interface Props {
   content: string;
+  isLoading: boolean;
+  progress: number;
   onClose: () => void;
 }
 
-export default function AiAnalysisPanel({ content, onClose }: Props) {
+const getLoadingLabel = (progress: number): string => {
+  if (progress < 25) return '코드 구조를 파악하는 중...';
+  if (progress < 50) return '핵심 로직을 분석하는 중...';
+  if (progress < 75) return '복잡도와 개선 포인트를 정리하는 중...';
+  if (progress < 100) return '분석 결과를 문서화하는 중...';
+  return '마무리 중...';
+};
+
+export default function AiAnalysisPanel({ content, isLoading, progress, onClose }: Props) {
+  const clampedProgress = Math.max(0, Math.min(100, progress));
+
   return (
     <div className="absolute inset-0 bg-panel flex flex-col z-40 border-l border-border h-full overflow-hidden">
       <div className="h-10 bg-panel-alt border-b border-border flex items-center justify-between px-4 shrink-0">
@@ -22,6 +34,22 @@ export default function AiAnalysisPanel({ content, onClose }: Props) {
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-6">
+        {isLoading ? (
+          <div className="mb-6 rounded-[var(--radius-lg)] border border-border bg-panel-alt p-4">
+            <div className="mb-2 flex items-center gap-2 text-[var(--analysis-section)]">
+              <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--analysis-marker)]" />
+              <span className="text-sm font-semibold">분석 중...</span>
+            </div>
+            <p className="mb-3 text-sm text-[var(--analysis-body)]">{getLoadingLabel(clampedProgress)}</p>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-background border border-[var(--analysis-code-border)]">
+              <div
+                className="h-full rounded-full bg-[var(--analysis-marker)] transition-all duration-500"
+                style={{ width: `${clampedProgress}%` }}
+              />
+            </div>
+            <div className="mt-2 text-right text-xs font-medium text-[var(--analysis-muted)]">{clampedProgress}%</div>
+          </div>
+        ) : null}
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{

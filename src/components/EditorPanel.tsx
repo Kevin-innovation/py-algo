@@ -26,6 +26,7 @@ export default function EditorPanel() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [aiProgress, setAiProgress] = useState(0);
 
   const currentMeta = useMemo(
     () => buildCurrentStepMetadata(timeline, breakpoints, currentStepIndex),
@@ -135,10 +136,30 @@ export default function EditorPanel() {
     }
   }, [breakpoints, code, currentMeta?.eventKind, currentMeta?.hasBreakpoint, currentStepIndex, errorColumn, errorLine, timeline, status]);
 
+  useEffect(() => {
+    if (!isAiLoading) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setAiProgress((prev) => {
+        if (prev >= 92) return prev;
+        const remain = 100 - prev;
+        const delta = Math.max(1, Math.round(remain / 14));
+        return Math.min(92, prev + delta);
+      });
+    }, 450);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [isAiLoading]);
+
   const runAiAnalysis = async () => {
     if (!code.trim()) return;
 
     setIsAiLoading(true);
+    setAiProgress(8);
     setIsPanelOpen(true);
     setAiAnalysis('AI가 코드를 분석하고 있습니다. 잠시만 기다려주세요...\n\n(이 작업은 코드가 길거나 복잡할 경우 수십 초가 걸릴 수 있습니다.)');
 
@@ -161,8 +182,10 @@ export default function EditorPanel() {
         throw new Error(data.error || '분석 실패');
       }
 
+      setAiProgress(100);
       setAiAnalysis(data.result);
     } catch (error: unknown) {
+      setAiProgress(100);
       if (error instanceof Error) {
         setAiAnalysis(`분석 중 오류가 발생했습니다: ${error.message}`);
       } else {
@@ -218,6 +241,8 @@ export default function EditorPanel() {
         {isPanelOpen && aiAnalysis !== null && (
           <AiAnalysisPanel 
             content={aiAnalysis} 
+            isLoading={isAiLoading}
+            progress={aiProgress}
             onClose={() => setIsPanelOpen(false)} 
           />
         )}
