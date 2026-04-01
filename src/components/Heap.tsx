@@ -18,14 +18,14 @@ export default function Heap() {
   if (!currentSnapshot || !currentSnapshot.heap) {
     if (currentSnapshot && currentSnapshot.event === 'uncaught_exception') {
       return (
-        <div className="flex-1 min-h-0 p-4 overflow-y-auto bg-panel border-l border-border">
+        <div className="h-full min-h-0 p-4 overflow-y-auto bg-panel border-l border-border">
           <h2 className="text-xl text-foreground font-bold mb-4">힙 객체</h2>
           <div className="text-error">예외로 인해 실행이 종료되었습니다.</div>
         </div>
       );
     }
     return (
-      <div className="flex-1 min-h-0 p-4 overflow-y-auto bg-panel">
+      <div className="h-full min-h-0 p-4 overflow-y-auto bg-panel">
         <h2 className="text-xl text-foreground font-bold mb-4">힙 객체</h2>
         <div className="text-foreground-secondary">코드를 실행하여 객체를 확인하세요</div>
       </div>
@@ -68,7 +68,7 @@ export default function Heap() {
   };
 
   return (
-    <div className="flex-[2] min-h-0 p-4 overflow-y-auto bg-panel border-l border-border">
+    <div className="h-full min-h-0 p-4 overflow-y-auto bg-panel border-l border-border">
       <h2 className="text-xl text-foreground font-bold mb-4">힙 객체</h2>
       <div className="flex flex-row flex-wrap gap-4 items-start">
         <AnimatePresence>

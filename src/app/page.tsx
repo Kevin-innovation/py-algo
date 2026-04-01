@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from 'next/link';
 import EditorPanel from "../components/EditorPanel";
 import ControlBar from "../components/ControlBar";
@@ -14,6 +14,13 @@ export default function Home() {
   const inputBufferRef = useRef<SharedArrayBuffer | null>(null);
   const int32ArrayRef = useRef<Int32Array | null>(null);
   const uint8ArrayRef = useRef<Uint8Array | null>(null);
+  const mainSplitRef = useRef<HTMLDivElement | null>(null);
+  const rightSplitRef = useRef<HTMLDivElement | null>(null);
+  const draggingMainRef = useRef(false);
+  const draggingVerticalRef = useRef(false);
+  const [mainSplitPercent, setMainSplitPercent] = useState(50);
+  const [rightTopPercent, setRightTopPercent] = useState(66);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   const {
     code,
@@ -31,6 +38,44 @@ export default function Home() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (draggingMainRef.current && mainSplitRef.current) {
+        const rect = mainSplitRef.current.getBoundingClientRect();
+        const raw = ((event.clientX - rect.left) / rect.width) * 100;
+        const clamped = Math.min(70, Math.max(30, raw));
+        setMainSplitPercent(clamped);
+      }
+
+      if (draggingVerticalRef.current && rightSplitRef.current) {
+        const rect = rightSplitRef.current.getBoundingClientRect();
+        const raw = ((event.clientY - rect.top) / rect.height) * 100;
+        const clamped = Math.min(82, Math.max(38, raw));
+        setRightTopPercent(clamped);
+      }
+    };
+
+    const handleMouseUp = () => {
+      draggingMainRef.current = false;
+      draggingVerticalRef.current = false;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  useEffect(() => {
+    const update = () => setIsDesktop(window.innerWidth >= 1024);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   useEffect(() => {
     workerRef.current = new Worker("/pyodideWorker.js?v=" + Date.now());
@@ -169,17 +214,47 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 p-4 gap-4">
-        {/* Left Pane: Editor */}
-        <div className="w-full lg:w-1/2 flex flex-col relative min-h-0 bg-panel border border-border rounded-[var(--radius-lg)] shadow-sm overflow-hidden">
+      <div ref={mainSplitRef} className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 p-4 lg:gap-0 gap-4">
+        <div
+          className="w-full flex flex-col relative min-h-0 bg-panel border border-border rounded-[var(--radius-lg)] shadow-sm overflow-hidden"
+          style={isDesktop ? { width: `calc(${mainSplitPercent}% - 4px)` } : undefined}
+        >
           <EditorPanel />
         </div>
 
-        {/* Right Pane: Visualizer & Terminal */}
-        <div className="w-full lg:w-1/2 flex flex-col min-h-0 bg-panel border border-border rounded-[var(--radius-lg)] shadow-sm overflow-hidden">
+        <div
+          onMouseDown={() => {
+            draggingMainRef.current = true;
+          }}
+          className="hidden lg:flex w-2 shrink-0 cursor-col-resize items-center justify-center"
+          aria-hidden="true"
+        >
+          <div className="h-full w-px bg-border" />
+        </div>
+
+        <div
+          ref={rightSplitRef}
+          className="w-full flex flex-col min-h-0 bg-panel border border-border rounded-[var(--radius-lg)] shadow-sm overflow-hidden"
+          style={isDesktop ? { width: `calc(${100 - mainSplitPercent}% - 4px)` } : undefined}
+        >
           <ControlBar />
-          <Visualizer />
-          <Terminal onInputSubmit={handleInputSubmit} />
+          <div className="flex-1 min-h-0 flex flex-col">
+            <div className="min-h-0" style={isDesktop ? { flexBasis: `${rightTopPercent}%` } : undefined}>
+              <Visualizer />
+            </div>
+            <div
+              onMouseDown={() => {
+                draggingVerticalRef.current = true;
+              }}
+              className="hidden lg:flex h-2 shrink-0 cursor-row-resize items-center justify-center"
+              aria-hidden="true"
+            >
+              <div className="w-full h-px bg-border" />
+            </div>
+            <div className="min-h-0" style={isDesktop ? { flexBasis: `${100 - rightTopPercent}%` } : undefined}>
+              <Terminal onInputSubmit={handleInputSubmit} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

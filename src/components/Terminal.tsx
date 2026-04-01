@@ -38,7 +38,7 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
   };
 
   return (
-    <div className="h-56 shrink-0 flex flex-col overflow-y-auto border-t border-border bg-background px-4 py-3 font-mono text-[var(--text-body)] text-foreground">
+    <div className="h-full min-h-0 flex flex-col overflow-y-auto border-t border-border bg-background px-4 py-3 font-mono text-[var(--text-body)] text-foreground">
       <div className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-border pb-2 text-[var(--text-small)] text-foreground-secondary">
         <span>출력 타임라인</span>
         {status === 'READY' && timeline.length > 0 ? (
