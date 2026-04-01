@@ -183,21 +183,21 @@ export default function EditorPanel() {
   };
 
   return (
-    <div className="flex-1 border-r border-gray-700 flex flex-col min-h-0 relative">
-      <div className="bg-gray-800 p-2 text-white font-semibold flex justify-between items-center shrink-0">
-        <span>코드 편집기</span>
-        <div className="flex items-center gap-4">
+    <div className="flex-1 border-r border-border bg-panel flex flex-col min-h-0 relative">
+      <div className="flex items-center justify-between gap-4 shrink-0 border-b border-border bg-panel-alt px-4 py-2.5 text-foreground">
+        <span className="text-[var(--text-body)] font-medium">코드 편집기</span>
+        <div className="flex items-center gap-3">
           <button
             onClick={handleAiAnalysis}
             disabled={isAiLoading || !code.trim()}
-            className="flex items-center gap-1.5 px-3 py-1 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 text-sm rounded transition-colors"
+            className="inline-flex h-9 items-center gap-1.5 rounded-[var(--radius-md)] border border-border bg-background px-3 text-[var(--text-body)] text-foreground shadow-sm transition-colors hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             {isAiLoading ? '분석 중...' : 'AI 분석'}
           </button>
-          <span className="text-sm text-gray-400">{status} • 중단점 {breakpoints.length}개</span>
+          <span className="text-[var(--text-small)] text-foreground-secondary whitespace-nowrap">{status} • 중단점 {breakpoints.length}개</span>
         </div>
       </div>
       <div className="flex-1 min-h-0 relative">

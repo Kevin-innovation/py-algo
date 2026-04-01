@@ -134,46 +134,49 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-full bg-gray-900 overflow-hidden flex-col w-full">
-      <div className="h-14 bg-gray-800 border-b border-gray-700 flex items-center px-6 justify-between shadow-sm shrink-0" data-testid="app-header">
-        <h1 className="text-white font-bold text-2xl tracking-tight flex items-baseline gap-2">
+    <div className="flex h-full bg-background overflow-hidden flex-col w-full">
+      <div className="h-[var(--spacing-header)] bg-header border-b border-border flex items-center px-6 justify-between shrink-0" data-testid="app-header">
+        <h1 className="text-foreground font-semibold text-[var(--text-section-title)] tracking-tight flex items-baseline gap-2">
           <span><span className="text-orange-500">DLAB</span> <span className="text-blue-500">Py</span>Algo</span>
-          <span className="text-sm font-medium text-gray-400 tracking-normal">visualization by Kevin</span>
+          <span className="text-[var(--text-small)] font-medium text-foreground-secondary tracking-normal">visualization by Kevin</span>
         </h1>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="text-sm text-white bg-gray-700 hover:bg-gray-600 rounded px-3 py-1 transition-colors"
-            data-testid="nav-editor"
-          >
-            에디터
-          </Link>
-          <Link
-            href="/learn"
-            className="text-sm text-gray-200 bg-gray-700 hover:bg-gray-600 rounded px-3 py-1 transition-colors"
-            data-testid="nav-learn"
-          >
-            학습
-          </Link>
+        <div className="flex items-center gap-4">
+          <nav className="flex items-center gap-1 bg-panel-alt p-1 rounded-[var(--radius-md)] border border-border">
+            <Link
+              href="/"
+              className="inline-flex h-9 items-center justify-center rounded-[var(--radius-sm)] bg-panel px-3 text-[var(--text-body)] font-medium text-foreground shadow-sm transition-colors"
+              data-testid="nav-editor"
+            >
+              에디터
+            </Link>
+            <Link
+              href="/learn"
+              className="inline-flex h-9 items-center justify-center rounded-[var(--radius-sm)] px-3 text-[var(--text-body)] text-foreground-secondary transition-colors hover:bg-panel hover:text-foreground"
+              data-testid="nav-learn"
+            >
+              학습
+            </Link>
+          </nav>
+          <div className="w-px h-4 bg-border"></div>
           <ThemeToggle />
           <button
             onClick={runCode}
             disabled={status === "LOADING" || status === "RUNNING" || status === "WAITING_INPUT"}
-            className="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-md font-semibold disabled:opacity-50 transition-colors"
+            className="inline-flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-accent px-4 text-[var(--text-body)] font-medium text-accent-foreground shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status === "RUNNING" ? "실행 중..." : status === "WAITING_INPUT" ? "입력 대기 중" : "코드 실행"}
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-row overflow-hidden min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 p-4 gap-4">
         {/* Left Pane: Editor */}
-        <div className="w-1/2 flex flex-col relative min-h-0">
+        <div className="w-full lg:w-1/2 flex flex-col relative min-h-0 bg-panel border border-border rounded-[var(--radius-lg)] shadow-sm overflow-hidden">
           <EditorPanel />
         </div>
 
         {/* Right Pane: Visualizer & Terminal */}
-        <div className="w-1/2 flex flex-col bg-gray-900 border-l border-gray-700 min-h-0">
+        <div className="w-full lg:w-1/2 flex flex-col min-h-0 bg-panel border border-border rounded-[var(--radius-lg)] shadow-sm overflow-hidden">
           <ControlBar />
           <Visualizer />
           <Terminal onInputSubmit={handleInputSubmit} />

@@ -3,26 +3,95 @@
 
 :root,
 [data-theme="light"] {
-  --background: #ffffff;
+  /* Colors */
+  --background: #fafafa;
+  --panel: #ffffff;
+  --panel-alt: #fafafa;
+  --sidebar: #ffffff;
+  --header: #ffffff;
+  --card: #ffffff;
+  --border: #eaeaea;
   --foreground: #171717;
-}
+  --foreground-secondary: #666666;
+  --accent: #000000;
+  --accent-foreground: #ffffff;
+  --success: #0070f3;
+  --warning: #f5a623;
+  --error: #e00;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Layout */
+  --sidebar-width: 250px;
+  --header-height: 64px;
+  --card-padding: 24px;
+  --button-height: 40px;
 }
 
 [data-theme="dark"] {
-  --background: #0a0a0a;
+  /* Colors */
+  --background: #000000;
+  --panel: #0a0a0a;
+  --panel-alt: #111111;
+  --sidebar: #000000;
+  --header: #000000;
+  --card: #0a0a0a;
+  --border: #333333;
   --foreground: #ededed;
+  --foreground-secondary: #888888;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --success: #3291ff;
+  --warning: #f5a623;
+  --error: #ff0000;
+}
+
+@theme inline {
+  /* Colors */
+  --color-background: var(--background);
+  --color-panel: var(--panel);
+  --color-panel-alt: var(--panel-alt);
+  --color-sidebar: var(--sidebar);
+  --color-header: var(--header);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+
+  /* Spacing / Layout */
+  --spacing-sidebar: var(--sidebar-width);
+  --spacing-header: var(--header-height);
+  --spacing-card: var(--card-padding);
+  --spacing-button: var(--button-height);
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  --text-page-title: 1.5rem;
+  --text-section-title: 1.25rem;
+  --text-body: 0.875rem;
+  --text-small: 0.75rem;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
 }
 
 .active-line-highlight {

@@ -38,20 +38,20 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
   };
 
   return (
-    <div className="h-56 bg-black text-green-400 font-mono text-sm p-4 overflow-y-auto flex flex-col border-t border-gray-700 shrink-0">
-      <div className="text-gray-500 mb-2 border-b border-gray-800 pb-1 shrink-0 flex items-center justify-between">
+    <div className="h-56 shrink-0 flex flex-col overflow-y-auto border-t border-border bg-background px-4 py-3 font-mono text-[var(--text-body)] text-emerald-400">
+      <div className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-border pb-2 text-[var(--text-small)] text-foreground-secondary">
         <span>출력 타임라인</span>
         {status === 'READY' && timeline.length > 0 ? (
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-[var(--text-small)]">
             <button
               onClick={() => setOutputMode('step-sync')}
-              className={`px-2 py-0.5 rounded border ${outputMode === 'step-sync' ? 'border-emerald-400 text-emerald-300' : 'border-gray-700 text-gray-500'}`}
+              className={`rounded-[var(--radius-md)] border px-2 py-1 text-[var(--text-small)] transition-colors ${outputMode === 'step-sync' ? 'border-border bg-panel text-foreground shadow-sm' : 'border-border bg-background text-foreground-secondary hover:bg-panel'}`}
             >
               단계 동기화
             </button>
             <button
               onClick={() => setOutputMode('replay')}
-              className={`px-2 py-0.5 rounded border ${outputMode === 'replay' ? 'border-cyan-400 text-cyan-300' : 'border-gray-700 text-gray-500'}`}
+              className={`rounded-[var(--radius-md)] border px-2 py-1 text-[var(--text-small)] transition-colors ${outputMode === 'replay' ? 'border-border bg-panel text-foreground shadow-sm' : 'border-border bg-background text-foreground-secondary hover:bg-panel'}`}
             >
               재생
             </button>
@@ -66,13 +66,13 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
             return (
               <div
                 key={`${entry.kind}-${idx}`}
-                className={`rounded px-2 py-1 border ${entry.kind === 'stdin' ? 'text-yellow-300 border-yellow-700/60 bg-yellow-900/10' : 'text-green-300 border-green-800/60 bg-green-900/10'} ${isCursor ? 'ring-1 ring-blue-300/70' : ''}`}
+                className={`rounded-[var(--radius-md)] border px-3 py-2 shadow-sm ${entry.kind === 'stdin' ? 'border-amber-800/40 bg-amber-950/20 text-amber-200' : 'border-emerald-900/40 bg-emerald-950/20 text-emerald-200'} ${isCursor ? 'ring-1 ring-accent/70' : ''}`}
               >
-                <span className="text-[10px] uppercase tracking-wider mr-2 opacity-80">
+                <span className="mr-2 text-[var(--text-small)] uppercase tracking-wider opacity-80">
                   {entry.kind} #{idx + 1}
                 </span>
                 {entry.text}
-                {isCursor ? <span className="ml-2 text-[10px] text-blue-300">◀ 재생 커서</span> : null}
+                {isCursor ? <span className="ml-2 text-[var(--text-small)] text-accent">◀ 재생 커서</span> : null}
               </div>
             );
           })}
@@ -91,30 +91,30 @@ export default function Terminal({ onInputSubmit }: { onInputSubmit: (text: stri
       )}
       
       {error && (
-        <div className="text-red-500 mt-2 whitespace-pre-wrap break-words">
+        <div className="mt-2 whitespace-pre-wrap break-words rounded-[var(--radius-md)] border border-red-900/40 bg-red-950/20 px-3 py-2 text-red-300">
           오류{errorLine ? ` (라인 ${errorLine}${errorColumn ? `, 열 ${errorColumn}` : ''})` : ''}: {error}
         </div>
       )}
       
       {status === 'WAITING_INPUT' && (
         <div className="flex flex-col mt-2">
-          <div className="text-yellow-300 mb-2 animate-pulse flex items-center gap-2 bg-yellow-900/20 border border-yellow-700/40 rounded px-2 py-2">
+          <div className="mb-2 flex items-center gap-2 rounded-[var(--radius-md)] border border-amber-800/40 bg-amber-950/20 px-3 py-2 text-amber-200 animate-pulse">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+              <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping"></span>
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500"></span>
             </span>
             입력을 위해 프로그램이 일시 중지되었습니다. 아래에 입력하고 Enter를 누르세요.
           </div>
           {latestInputEntry?.prompt ? (
-            <div className="text-xs text-amber-200 mb-2 font-mono bg-amber-900/20 border border-amber-700/50 rounded px-2 py-1">
+            <div className="mb-2 rounded-[var(--radius-md)] border border-border bg-panel-alt px-3 py-1.5 text-[var(--text-small)] text-amber-200 shadow-sm">
               프롬프트: {latestInputEntry.prompt}
             </div>
           ) : null}
-          <div className="flex items-center bg-gray-900 border border-yellow-500/50 rounded p-1 shadow-[0_0_10px_rgba(234,179,8,0.2)]">
-            <span className="text-yellow-400 mr-2 ml-1 font-bold">&gt;</span>
+          <div className="flex items-center rounded-[var(--radius-md)] border border-border bg-background px-3 py-2 shadow-sm">
+            <span className="mr-2 font-bold text-amber-400">&gt;</span>
             <input
               type="text"
-              className="bg-transparent text-white outline-none flex-1 font-mono"
+              className="flex-1 bg-transparent font-mono text-[var(--text-body)] text-foreground outline-none placeholder:text-foreground-secondary/70"
               autoFocus
               placeholder="표준 입력(stdin) 값을 제공하고 Enter를 누르세요"
               onKeyDown={handleKeyDown}

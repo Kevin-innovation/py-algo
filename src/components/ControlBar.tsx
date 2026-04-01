@@ -31,40 +31,40 @@ export default function ControlBar() {
   );
 
   if (timeline.length === 0) {
-    return <div className="h-14 bg-gray-800 border-b border-gray-700 p-3 flex items-center text-gray-400 shrink-0">코드를 실행하여 타임라인 컨트롤을 확인하세요</div>;
+    return <div className="h-14 shrink-0 border-b border-border bg-panel-alt px-4 flex items-center text-[var(--text-body)] text-foreground-secondary">코드를 실행하여 타임라인 컨트롤을 확인하세요</div>;
   }
 
   const totalSteps = timeline.length;
 
   return (
-    <div className="bg-gray-800 border-b border-gray-700 p-3 flex flex-col gap-2 shrink-0">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-2">
+    <div className="flex flex-col gap-3 shrink-0 border-b border-border bg-panel-alt px-4 py-3 text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setCurrentStepIndex(0)}
             disabled={currentStepIndex === 0}
-            className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-background px-3 text-[var(--text-body)] text-foreground shadow-sm transition-colors hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background"
           >
             처음
           </button>
           <button
             onClick={stepBackward}
             disabled={currentStepIndex === 0}
-            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-accent px-3 text-[var(--text-body)] text-accent-foreground shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:opacity-50"
           >
             이전
           </button>
           <button
             onClick={stepForward}
             disabled={currentStepIndex === timeline.length - 1}
-            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-accent px-3 text-[var(--text-body)] text-accent-foreground shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:opacity-50"
           >
             다음
           </button>
           <button
             onClick={continueToNextBreakpoint}
             disabled={currentStepIndex === timeline.length - 1 || breakpoints.length === 0}
-            className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-500 disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-background px-3 text-[var(--text-body)] text-foreground shadow-sm transition-colors hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background"
             title="다음 중단점이 있는 단계로 건너뛰기"
           >
             계속 ▶
@@ -72,43 +72,43 @@ export default function ControlBar() {
           <button
             onClick={() => setCurrentStepIndex(timeline.length - 1)}
             disabled={currentStepIndex === timeline.length - 1}
-            className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-background px-3 text-[var(--text-body)] text-foreground shadow-sm transition-colors hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background"
           >
             마지막
           </button>
           <button
             onClick={clearBreakpoints}
             disabled={breakpoints.length === 0}
-            className="px-3 py-1 bg-gray-700 text-orange-200 rounded hover:bg-gray-600 disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center rounded-[var(--radius-md)] border border-border bg-background px-3 text-[var(--text-body)] text-foreground-secondary shadow-sm transition-colors hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background"
           >
             중단점 지우기
           </button>
         </div>
 
-        <div className="text-white font-mono flex-1 px-4 text-right">
+        <div className="flex-1 rounded-[var(--radius-md)] border border-border bg-background px-3 py-2 text-right font-mono text-[var(--text-small)] text-foreground-secondary shadow-sm">
           단계 {currentStepIndex + 1} / {timeline.length}
           {currentMeta?.loopIteration ? <span className="text-amber-300 ml-3">루프 #{currentMeta.loopIteration}</span> : null}
         </div>
 
-        <label className="text-sm text-gray-300 flex items-center gap-2">
+        <label className="flex items-center gap-2 text-[var(--text-small)] text-foreground-secondary whitespace-nowrap">
           <input
             type="checkbox"
             checked={educationalMode}
             onChange={(e) => setEducationalMode(e.target.checked)}
-            className="accent-blue-500"
+            className="accent-accent"
           />
           설명
         </label>
       </div>
 
-      <div className="relative pt-4 pb-1">
+      <div className="relative pt-2 pb-1">
         <input
           type="range"
           min={0}
           max={Math.max(totalSteps - 1, 0)}
           value={currentStepIndex}
           onChange={(e) => setCurrentStepIndex(Number(e.target.value))}
-          className="w-full accent-blue-500"
+          className="w-full accent-accent"
           aria-label="타임라인 단계 슬라이더"
         />
         <div className="pointer-events-none absolute left-0 right-0 top-0 h-4">
@@ -147,12 +147,12 @@ export default function ControlBar() {
       </div>
 
       {educationalMode && currentMeta ? (
-        <div className="text-xs text-blue-100 bg-blue-900/20 border border-blue-800/60 rounded px-3 py-2">
+        <div className="rounded-[var(--radius-md)] border border-border bg-background px-3 py-2 text-[var(--text-small)] text-foreground-secondary shadow-sm">
           {currentMeta.explanation}
         </div>
       ) : null}
 
-      <div className="text-xs text-gray-400">
+      <div className="text-[var(--text-small)] text-foreground-secondary">
         이벤트 색상: <span className="text-emerald-300">stdout</span>, <span className="text-amber-300">stdin</span>, <span className="text-sky-300">call</span>, <span className="text-violet-300">return</span>, <span className="text-rose-400">exception</span>
       </div>
     </div>
