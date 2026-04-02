@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo } from 'react';
 import ThemeToggle from '../../components/ThemeToggle';
+import AuthButton from '../../components/AuthButton';
 import AlgorithmDetail from '../../components/learn/AlgorithmDetail';
 import AlgorithmSidebar from '../../components/learn/AlgorithmSidebar';
 import { getAlgorithmById, getAlgorithmsByCategory } from '../../data/algorithms/index';
@@ -85,6 +86,7 @@ export default function LearnPageClient() {
           </nav>
           <div className="w-px h-4 bg-border"></div>
           <ThemeToggle />
+          <AuthButton />
           <button
             onClick={() => {
               if (selectedAlgorithm) {

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createSupabaseServerContext } from '../../../lib/supabase/server';
+import { getSupabaseCookies } from '../../../lib/supabase/cookies';
+import { canAccessAnalyzeApi } from '../../../lib/auth/rbac';
 
 export const maxDuration = 60; // Vercel Serverless Function Timeout 설정 (60초)
 export const AI_ANALYZE_AUTH_COOKIE = 'ai_analyze_auth';
@@ -162,7 +165,22 @@ export async function POST(req: Request) {
 
     const cookieStore = await cookies();
     const authToken = cookieStore.get(AI_ANALYZE_AUTH_COOKIE)?.value;
-    const isAuthenticated = authToken === '1';
+    let hasSupabaseSession = false;
+
+    if (authToken !== '1') {
+      const supabaseCookies = await getSupabaseCookies();
+      const contextResult = createSupabaseServerContext(supabaseCookies);
+      if (contextResult.ok) {
+        const sessionResult = await contextResult.data.readSession();
+        hasSupabaseSession = sessionResult.ok;
+      }
+    }
+
+    const isAuthenticated = canAccessAnalyzeApi({
+      legacyCookieValue: authToken,
+      hasSupabaseSession,
+    });
+
     if (!isAuthenticated) {
       return NextResponse.json({ error: 'AI 분석 인증이 필요합니다.' }, { status: 401 });
     }

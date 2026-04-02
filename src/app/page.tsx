@@ -7,6 +7,7 @@ import ControlBar from "../components/ControlBar";
 import Visualizer from "../components/Visualizer";
 import Terminal from "../components/Terminal";
 import ThemeToggle from "../components/ThemeToggle";
+import AuthButton from "../components/AuthButton";
 import { useStore } from "../store/useStore";
 
 export default function Home() {
@@ -204,6 +205,7 @@ export default function Home() {
           </nav>
           <div className="w-px h-4 bg-border"></div>
           <ThemeToggle />
+          <AuthButton />
           <button
             onClick={runCode}
             disabled={status === "LOADING" || status === "RUNNING" || status === "WAITING_INPUT"}

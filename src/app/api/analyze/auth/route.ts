@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { AI_ANALYZE_AUTH_COOKIE } from '../route';
 
+// Legacy AI-analysis password gate; Supabase is the primary auth path for future flows.
 export async function POST(req: Request) {
   try {
     const { password } = await req.json();

@@ -54,12 +54,24 @@ bun run dev
 `.env.local`에 아래 값을 설정하세요.
 
 ```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
 GEMINI_API_KEY=...
 AI_ANALYZE_PASSWORD=...
 ```
 
+- `NEXT_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL (클라이언트/서버 공용)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: 브라우저 세션 부트스트랩용 공개 키
+- `SUPABASE_SERVICE_ROLE_KEY`: 서버 전용 권한 키
 - `GEMINI_API_KEY`: Gemini API 호출 키
-- `AI_ANALYZE_PASSWORD`: AI 분석 인증용 비밀번호
+- `AI_ANALYZE_PASSWORD`: AI 분석용 레거시 비밀번호 게이트
+
+## Supabase 인증 경계
+
+- 기본 인증 공급자는 Supabase입니다.
+- 서버 세션은 Supabase 서버 컨텍스트에서 확인하고, 클라이언트는 공개 Supabase 키로만 부트스트랩합니다.
+- 기존 `/api/analyze/auth` 비밀번호 게이트는 AI 분석 기능에 한한 레거시 지원입니다.
 
 ## 스크립트
 
@@ -75,7 +87,7 @@ bun run lint
 - `/` : 코드 편집/실행/시각화 메인 화면
 - `/learn` : 알고리즘 학습 화면
 - `/api/analyze` : AI 분석 API (인증 쿠키 필요)
-- `/api/analyze/auth` : AI 분석 인증 API (비밀번호 검증 후 httpOnly 쿠키 발급)
+- `/api/analyze/auth` : AI 분석 레거시 인증 API (비밀번호 검증 후 httpOnly 쿠키 발급)
 
 ## 테스트/검증 상태
 

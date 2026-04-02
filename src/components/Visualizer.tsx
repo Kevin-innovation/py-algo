@@ -47,7 +47,9 @@ export default function Visualizer() {
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem('showAdvancedMemory');
-      setShowAdvancedMemory(stored === 'true');
+      queueMicrotask(() => {
+        setShowAdvancedMemory(stored === 'true');
+      });
     } catch {
     }
   }, []);

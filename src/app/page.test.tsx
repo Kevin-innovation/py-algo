@@ -3,9 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Home from './page';
 import { useStore } from '../store/useStore';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    refresh: vi.fn(),
+  }),
+}));
+
 vi.mock('../components/EditorPanel', () => ({ default: () => <div data-testid="mock-editor-panel" /> }));
 vi.mock('../components/ControlBar', () => ({ default: () => <div data-testid="mock-control-bar" /> }));
 vi.mock('../components/Visualizer', () => ({ default: () => <div data-testid="mock-visualizer" /> }));
+vi.mock('../components/AuthButton', () => ({ default: () => <div data-testid="mock-auth-button" /> }));
 vi.mock('../components/Terminal', () => ({
   default: ({ onInputSubmit }: { onInputSubmit: (text: string) => void }) => (
     <button data-testid="mock-terminal" onClick={() => onInputSubmit('input')} type="button">terminal</button>
