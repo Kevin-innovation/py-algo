@@ -6,7 +6,7 @@ import Heap from './Heap';
 import DynamicPointers from './DynamicPointers';
 import FunctionHistoryPanel from './FunctionHistoryPanel';
 import { Xwrapper } from 'react-xarrows';
-import { buildCurrentStepMetadata, HeapObject, useStore } from '../store/useStore';
+import { HeapObject, useStore } from '../store/useStore';
 
 export default function Visualizer() {
   const splitRef = useRef<HTMLDivElement | null>(null);
@@ -16,15 +16,10 @@ export default function Visualizer() {
   const [showAdvancedMemory, setShowAdvancedMemory] = useState(false);
   const [showAllPointers, setShowAllPointers] = useState(false);
   const [enabledGlobalPointerVars, setEnabledGlobalPointerVars] = useState<string[]>([]);
-  const pointerSelectionInitializedRef = useRef(false);
   const timeline = useStore((state) => state.timeline);
   const currentStepIndex = useStore((state) => state.currentStepIndex);
-  const breakpoints = useStore((state) => state.breakpoints);
+  const status = useStore((state) => state.status);
   const currentSnapshot = timeline[currentStepIndex];
-  const currentMeta = useMemo(
-    () => buildCurrentStepMetadata(timeline, breakpoints, currentStepIndex),
-    [timeline, breakpoints, currentStepIndex],
-  );
 
   const globalPointerVarNames = useMemo(() => {
     if (!currentSnapshot?.stack || !currentSnapshot.heap) return [] as string[];
@@ -39,38 +34,22 @@ export default function Visualizer() {
       .map(([varName]) => varName);
   }, [currentSnapshot]);
 
-  const defaultPointerVarNames = useMemo(() => {
-    if (globalPointerVarNames.length === 0) return [] as string[];
-
-    const changed = currentMeta?.changedVariables ?? [];
-    const essentialChanged = globalPointerVarNames.filter((name) => changed.includes(name));
-    if (essentialChanged.length > 0) {
-      return essentialChanged;
-    }
-
-    return [globalPointerVarNames[0]];
-  }, [currentMeta?.changedVariables, globalPointerVarNames]);
-
   useEffect(() => {
     queueMicrotask(() => {
       setEnabledGlobalPointerVars((prev) => {
-        const valid = prev.filter((name) => globalPointerVarNames.includes(name));
-
-        if (globalPointerVarNames.length === 0) {
-          pointerSelectionInitializedRef.current = false;
-          return [];
-        }
-
-        if (!pointerSelectionInitializedRef.current) {
-          pointerSelectionInitializedRef.current = true;
-          if (valid.length > 0) return valid;
-          return defaultPointerVarNames;
-        }
-
-        return valid;
+        return prev.filter((name) => globalPointerVarNames.includes(name));
       });
     });
-  }, [defaultPointerVarNames, globalPointerVarNames]);
+  }, [globalPointerVarNames]);
+
+  useEffect(() => {
+    if (status !== 'RUNNING') return;
+
+    queueMicrotask(() => {
+      setShowAllPointers(false);
+      setEnabledGlobalPointerVars([]);
+    });
+  }, [status]);
 
   useEffect(() => {
     const update = () => setIsDesktop(window.innerWidth >= 1024);
