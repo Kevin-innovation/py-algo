@@ -33,19 +33,22 @@ export default function Heap() {
   }
 
   const renderHeapObject = (obj: HeapObject, id: string) => {
+    const renderCollection = (items: HeapObject[]) => (
+      <div className="flex flex-row flex-wrap gap-1 mt-1 font-mono text-sm border border-border rounded bg-panel-alt p-1 min-w-[30px] min-h-[20px]">
+        {items.map((v: HeapObject, idx: number) => (
+          <div key={idx} className="bg-background px-2 py-1 rounded">
+            {v.ref ? <span id={`heap-${id}-item-${idx}`} className="text-purple-600">참조</span> : <span className="text-yellow-600">{String(v.value)}</span>}
+          </div>
+        ))}
+      </div>
+    );
+
     switch (obj.type) {
       case 'list':
       case 'tuple':
       case 'set':
-        return (
-          <div className="flex flex-row flex-wrap gap-1 mt-1 font-mono text-sm border border-border rounded bg-panel-alt p-1 min-w-[30px] min-h-[20px]">
-            {Array.isArray(obj.value) && obj.value.map((v: HeapObject, idx: number) => (
-              <div key={idx} className="bg-background px-2 py-1 rounded">
-                {v.ref ? <span id={`heap-${id}-item-${idx}`} className="text-purple-600">참조</span> : <span className="text-yellow-600">{String(v.value)}</span>}
-              </div>
-            ))}
-          </div>
-        );
+      case 'deque':
+        return renderCollection(Array.isArray(obj.value) ? obj.value as HeapObject[] : []);
       case 'dict':
         return (
           <div className="flex flex-col gap-1 mt-1 font-mono text-sm border border-border rounded bg-panel-alt p-2 min-w-[40px]">

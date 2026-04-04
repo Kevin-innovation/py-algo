@@ -21,7 +21,12 @@ export default function LoginPage() {
 
     const clientResult = createSupabaseBrowserClient();
     if (!clientResult.ok) {
-      setError('Supabase configuration is missing.');
+      const missing = clientResult.error.missing?.join(', ');
+      if (missing) {
+        setError(`Supabase 환경변수 누락: ${missing}`);
+      } else {
+        setError(clientResult.error.message);
+      }
       setLoading(false);
       return;
     }
