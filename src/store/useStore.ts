@@ -4,6 +4,7 @@ export interface HeapObject {
   type: string;
   id: string | number;
   value: unknown;
+  size_bytes?: number | null;
   ref?: boolean;
 }
 

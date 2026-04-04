@@ -32,6 +32,14 @@ export default function Heap() {
     );
   }
 
+  const formatSize = (sizeBytes: number | null | undefined): string | null => {
+    if (typeof sizeBytes !== 'number' || Number.isNaN(sizeBytes) || sizeBytes < 0) return null;
+    if (sizeBytes < 1024) return `${sizeBytes} B`;
+    if (sizeBytes < 1024 * 1024) return `${(sizeBytes / 1024).toFixed(1)} KB`;
+    if (sizeBytes < 1024 * 1024 * 1024) return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(sizeBytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  };
+
   const renderHeapObject = (obj: HeapObject, id: string) => {
     const renderCollection = (items: HeapObject[]) => (
       <div className="flex flex-row flex-wrap gap-1 mt-1 font-mono text-sm border border-border rounded bg-panel-alt p-1 min-w-[30px] min-h-[20px]">
@@ -77,6 +85,7 @@ export default function Heap() {
         <AnimatePresence>
           {Object.entries(currentSnapshot.heap).map(([id, obj]) => {
             const heapObj = obj as HeapObject;
+            const formattedSize = formatSize(heapObj.size_bytes);
             return (
               <motion.div
                 key={id}
@@ -88,7 +97,10 @@ export default function Heap() {
                 className={`bg-background rounded-lg p-3 shadow-md border min-w-[120px] ${changedHeapIds.has(id) ? 'border-cyan-500 ring-1 ring-cyan-400/70 shadow-cyan-500/10' : 'border-border'}`}
               >
                 <div className="flex justify-between items-center mb-1 pb-1 border-b border-border">
-                  <span className="text-xs text-foreground-secondary font-mono">id:{id}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-foreground-secondary font-mono">id:{id}</span>
+                    {formattedSize ? <span className="text-[10px] text-foreground-secondary font-mono">{formattedSize}</span> : null}
+                  </div>
                   <span className="text-sm font-semibold text-green-600 px-2 py-0.5 bg-panel rounded">{heapObj.type}</span>
                 </div>
                 {renderHeapObject(heapObj, id)}

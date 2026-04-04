@@ -64,6 +64,13 @@ def get_obj_id(obj):
 def get_type_name(obj):
     return type(obj).__name__
 
+
+def get_size_bytes(obj):
+    try:
+        return int(sys.getsizeof(obj))
+    except Exception:
+        return None
+
 def serialize_value(val):
     val_type = get_type_name(val)
     obj_id = get_obj_id(val)
@@ -94,46 +101,86 @@ def serialize_heap_objects():
             if isinstance(obj, list) or val_type == 'deque':
                 values, omitted = trim_collection(list(obj))
                 serialized = [serialize_value(x) for x in values]
-                payload = {"type": val_type, "id": obj_id, "value": serialized}
+                payload = {"type": val_type, "id": obj_id, "value": serialized, "size_bytes": get_size_bytes(obj)}
                 if omitted:
                     payload["omitted_items"] = omitted
                 serialized_heap[obj_id] = payload
             elif isinstance(obj, dict) or val_type in ('Counter', 'defaultdict'):
                 items, omitted = trim_mapping_items(list(obj.items()))
                 value_map = {str(k): serialize_value(v) for k, v in items}
-                payload = {"type": val_type, "id": obj_id, "value": value_map}
+                payload = {"type": val_type, "id": obj_id, "value": value_map, "size_bytes": get_size_bytes(obj)}
                 if omitted:
                     payload["omitted_items"] = omitted
                 serialized_heap[obj_id] = payload
             elif isinstance(obj, tuple):
                 values, omitted = trim_collection(list(obj))
-                payload = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in values]}
+                payload = {
+                    "type": val_type,
+                    "id": obj_id,
+                    "value": [serialize_value(x) for x in values],
+                    "size_bytes": get_size_bytes(obj),
+                }
                 if omitted:
                     payload["omitted_items"] = omitted
                 serialized_heap[obj_id] = payload
             elif isinstance(obj, set):
                 values, omitted = trim_collection(list(obj))
-                payload = {"type": val_type, "id": obj_id, "value": [serialize_value(x) for x in values]}
+                payload = {
+                    "type": val_type,
+                    "id": obj_id,
+                    "value": [serialize_value(x) for x in values],
+                    "size_bytes": get_size_bytes(obj),
+                }
                 if omitted:
                     payload["omitted_items"] = omitted
                 serialized_heap[obj_id] = payload
             elif val_type == 'ndarray':
                 if hasattr(obj, 'size') and obj.size < 100 and hasattr(obj, 'tolist'):
-                    serialized_heap[obj_id] = {"type": "numpy.ndarray", "id": obj_id, "value": [serialize_value(x) for x in obj.tolist()]}
+                    serialized_heap[obj_id] = {
+                        "type": "numpy.ndarray",
+                        "id": obj_id,
+                        "value": [serialize_value(x) for x in obj.tolist()],
+                        "size_bytes": get_size_bytes(obj),
+                    }
                 else:
                     val = truncate_repr_text(repr(obj))
-                    serialized_heap[obj_id] = {"type": "numpy.ndarray", "id": obj_id, "value": val}
+                    serialized_heap[obj_id] = {
+                        "type": "numpy.ndarray",
+                        "id": obj_id,
+                        "value": val,
+                        "size_bytes": get_size_bytes(obj),
+                    }
             elif val_type == 'DataFrame':
                 if hasattr(obj, 'shape') and obj.shape[0] * obj.shape[1] < 100 and hasattr(obj, 'to_dict'):
-                    serialized_heap[obj_id] = {"type": "pandas.DataFrame", "id": obj_id, "value": obj.to_dict('records')}
+                    serialized_heap[obj_id] = {
+                        "type": "pandas.DataFrame",
+                        "id": obj_id,
+                        "value": obj.to_dict('records'),
+                        "size_bytes": get_size_bytes(obj),
+                    }
                 else:
                     val = truncate_repr_text(repr(obj))
-                    serialized_heap[obj_id] = {"type": "pandas.DataFrame", "id": obj_id, "value": val}
+                    serialized_heap[obj_id] = {
+                        "type": "pandas.DataFrame",
+                        "id": obj_id,
+                        "value": val,
+                        "size_bytes": get_size_bytes(obj),
+                    }
             else:
                 val = truncate_repr_text(repr(obj))
-                serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": val}
+                serialized_heap[obj_id] = {
+                    "type": val_type,
+                    "id": obj_id,
+                    "value": val,
+                    "size_bytes": get_size_bytes(obj),
+                }
         except Exception:
-            serialized_heap[obj_id] = {"type": val_type, "id": obj_id, "value": "<unserializable>"}
+            serialized_heap[obj_id] = {
+                "type": val_type,
+                "id": obj_id,
+                "value": "<unserializable>",
+                "size_bytes": get_size_bytes(obj),
+            }
 
     if len(heap_objects) >= MAX_HEAP_OBJECTS:
         serialized_heap["__meta__"] = {

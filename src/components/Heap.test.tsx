@@ -6,20 +6,21 @@ import { useStore, buildCurrentStepMetadata } from '../store/useStore';
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({
-      children,
-      layout: _layout,
-      initial: _initial,
-      animate: _animate,
-      exit: _exit,
-      ...props
-    }: {
+    div: ({ children, ...props }: {
       children: React.ReactNode;
       layout?: unknown;
       initial?: unknown;
       animate?: unknown;
       exit?: unknown;
-    }) => <div {...props}>{children}</div>,
+    }) => {
+      const domProps = { ...props } as Record<string, unknown>;
+      delete domProps.layout;
+      delete domProps.initial;
+      delete domProps.animate;
+      delete domProps.exit;
+
+      return <div {...domProps}>{children}</div>;
+    },
   },
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -46,6 +47,7 @@ describe('Heap', () => {
             '14143216': {
               type: 'deque',
               id: 14143216,
+              size_bytes: 2048,
               value: [
                 { type: 'int', value: 101, id: 1 },
                 { type: 'int', value: 202, id: 2 },
@@ -67,6 +69,7 @@ describe('Heap', () => {
     render(<Heap />);
 
     expect(screen.getByText('deque')).toBeTruthy();
+    expect(screen.getByText('2.0 KB')).toBeTruthy();
     expect(screen.getByText('101')).toBeTruthy();
     expect(screen.getByText('202')).toBeTruthy();
     expect(screen.queryByText('[object Object],[object Object]')).toBeNull();

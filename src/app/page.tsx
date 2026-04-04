@@ -10,6 +10,9 @@ import ThemeToggle from "../components/ThemeToggle";
 import AuthButton from "../components/AuthButton";
 import { useStore } from "../store/useStore";
 
+const EXECUTION_TIMEOUT_MS = 8_000;
+const EXECUTION_TIMEOUT_ERROR = `실행 시간이 ${EXECUTION_TIMEOUT_MS / 1000}초를 초과해 중단했습니다. 무한 루프를 확인해 주세요.`;
+
 export default function Home() {
   const workerRef = useRef<Worker | null>(null);
   const inputBufferRef = useRef<SharedArrayBuffer | null>(null);
@@ -19,6 +22,7 @@ export default function Home() {
   const rightSplitRef = useRef<HTMLDivElement | null>(null);
   const draggingMainRef = useRef(false);
   const draggingVerticalRef = useRef(false);
+  const executionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [mainSplitPercent, setMainSplitPercent] = useState(50);
   const [rightTopPercent, setRightTopPercent] = useState(66);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -35,6 +39,78 @@ export default function Home() {
     setTimeline,
     theme,
   } = useStore();
+
+  const clearExecutionTimeout = () => {
+    if (!executionTimeoutRef.current) return;
+    clearTimeout(executionTimeoutRef.current);
+    executionTimeoutRef.current = null;
+  };
+
+  const armExecutionTimeout = () => {
+    clearExecutionTimeout();
+    executionTimeoutRef.current = setTimeout(() => {
+      workerRef.current?.terminate();
+      workerRef.current = null;
+
+      setStatus("ERROR");
+      setError(EXECUTION_TIMEOUT_ERROR);
+      setErrorLine(null);
+      setErrorColumn(null);
+    }, EXECUTION_TIMEOUT_MS);
+  };
+
+  const handleWorkerMessage = (e: MessageEvent) => {
+    const { type, status: msgStatus, text, error, errorLine, errorColumn, trace } = e.data;
+
+    if (type === "STATUS") {
+      setStatus(msgStatus);
+    } else if (type === "READY") {
+      setStatus("READY");
+    } else if (type === "STDOUT") {
+      appendOutput(text);
+    } else if (type === "STDERR") {
+      appendOutput(text);
+    } else if (type === "INPUT_REQUEST") {
+      setStatus("WAITING_INPUT");
+      clearExecutionTimeout();
+    } else if (type === "ERROR") {
+      clearExecutionTimeout();
+      setStatus("ERROR");
+      setError(error);
+      setErrorLine(typeof errorLine === 'number' ? errorLine : null);
+      setErrorColumn(typeof errorColumn === 'number' ? errorColumn : null);
+    } else if (type === "DONE") {
+      clearExecutionTimeout();
+      setStatus("READY");
+      setErrorLine(null);
+      setErrorColumn(null);
+      if (trace) {
+        try {
+          const parsedTrace = JSON.parse(trace);
+          setTimeline(parsedTrace);
+        } catch (err) {
+          console.error("Failed to parse trace JSON:", err);
+          setError("Failed to parse execution trace.");
+        }
+      }
+    }
+  };
+
+  const createWorker = () => {
+    const worker = new Worker("/pyodideWorker.js?v=" + Date.now());
+    worker.onmessage = handleWorkerMessage;
+
+    if (inputBufferRef.current) {
+      worker.postMessage({
+        type: "INIT",
+        buffer: inputBufferRef.current,
+      });
+    } else {
+      worker.postMessage({ type: "INIT" });
+    }
+
+    return worker;
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -79,8 +155,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    workerRef.current = new Worker("/pyodideWorker.js?v=" + Date.now());
-
     try {
       if (typeof SharedArrayBuffer === "undefined") {
         throw new Error("SharedArrayBuffer is not supported. Please use localhost or enable Cross-Origin Isolation.");
@@ -89,10 +163,7 @@ export default function Home() {
       int32ArrayRef.current = new Int32Array(inputBufferRef.current);
       uint8ArrayRef.current = new Uint8Array(inputBufferRef.current);
 
-      workerRef.current.postMessage({
-        type: "INIT",
-        buffer: inputBufferRef.current,
-      });
+      workerRef.current = createWorker();
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
@@ -100,44 +171,11 @@ export default function Home() {
       } else {
         setError("Failed to initialize SharedArrayBuffer.");
       }
-      workerRef.current.postMessage({ type: "INIT" });
+      workerRef.current = createWorker();
     }
 
-    workerRef.current.onmessage = (e) => {
-      const { type, status: msgStatus, text, error, errorLine, errorColumn, trace } = e.data;
-
-      if (type === "STATUS") {
-        setStatus(msgStatus);
-      } else if (type === "READY") {
-        setStatus("READY");
-      } else if (type === "STDOUT") {
-        appendOutput(text);
-      } else if (type === "STDERR") {
-        appendOutput(text);
-      } else if (type === "INPUT_REQUEST") {
-        setStatus("WAITING_INPUT");
-      } else if (type === "ERROR") {
-        setStatus("ERROR");
-        setError(error);
-        setErrorLine(typeof errorLine === 'number' ? errorLine : null);
-        setErrorColumn(typeof errorColumn === 'number' ? errorColumn : null);
-      } else if (type === "DONE") {
-        setStatus("READY");
-        setErrorLine(null);
-        setErrorColumn(null);
-        if (trace) {
-          try {
-            const parsedTrace = JSON.parse(trace);
-            setTimeline(parsedTrace);
-          } catch (err) {
-            console.error("Failed to parse trace JSON:", err);
-            setError("Failed to parse execution trace.");
-          }
-        }
-      }
-    };
-
     return () => {
+      clearExecutionTimeout();
       workerRef.current?.terminate();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -155,7 +193,12 @@ export default function Home() {
       Atomics.store(int32ArrayRef.current, 0, 0);
     }
 
+    if (!workerRef.current) {
+      workerRef.current = createWorker();
+    }
+
     workerRef.current?.postMessage({ type: "RUN", code });
+    armExecutionTimeout();
   };
 
   const handleInputSubmit = (text: string) => {
@@ -177,6 +220,7 @@ export default function Home() {
     // Notify worker
     Atomics.store(int32ArrayRef.current, 0, 1);
     Atomics.notify(int32ArrayRef.current, 0, 1);
+    armExecutionTimeout();
   };
 
   return (
