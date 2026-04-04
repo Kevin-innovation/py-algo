@@ -11,7 +11,9 @@ vi.mock('../store/useStore', () => ({
 
 // Mock Editor
 vi.mock('@monaco-editor/react', () => ({
-  default: vi.fn((props: { theme: string }) => <div data-testid="mock-editor" data-theme={props.theme}>Editor</div>),
+  default: vi.fn((props: { theme: string; options?: { fontSize?: number } }) => (
+    <div data-testid="mock-editor" data-theme={props.theme} data-font-size={String(props.options?.fontSize ?? '')}>Editor</div>
+  )),
 }));
 
 vi.mock('./PasswordModal', () => ({
@@ -109,5 +111,22 @@ describe('EditorPanel', () => {
       expect(state.isAuthenticated).toBe(false);
       expect(screen.getByTestId('mock-password-success')).toBeDefined();
     });
+  });
+
+  it('updates editor font size with A+ and reset controls', () => {
+    const state = makeBaseState();
+    state.code = '';
+    (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (store: typeof state) => unknown) => selector(state));
+
+    render(<EditorPanel />);
+
+    const editor = screen.getByTestId('mock-editor');
+    expect(editor.getAttribute('data-font-size')).toBe('14');
+
+    fireEvent.click(screen.getByRole('button', { name: 'A+' }));
+    expect(screen.getByTestId('mock-editor').getAttribute('data-font-size')).toBe('15');
+
+    fireEvent.click(screen.getByRole('button', { name: '15px' }));
+    expect(screen.getByTestId('mock-editor').getAttribute('data-font-size')).toBe('14');
   });
 });

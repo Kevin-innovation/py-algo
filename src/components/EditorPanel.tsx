@@ -7,6 +7,27 @@ import { buildCurrentStepMetadata, useStore } from '../store/useStore';
 import PasswordModal from './PasswordModal';
 import AiAnalysisPanel from './AiAnalysisPanel';
 
+const MIN_EDITOR_FONT_SIZE = 10;
+const MAX_EDITOR_FONT_SIZE = 24;
+const DEFAULT_EDITOR_FONT_SIZE = 14;
+
+const clampEditorFontSize = (value: number): number => {
+  if (Number.isNaN(value)) return DEFAULT_EDITOR_FONT_SIZE;
+  return Math.min(MAX_EDITOR_FONT_SIZE, Math.max(MIN_EDITOR_FONT_SIZE, value));
+};
+
+const getInitialEditorFontSize = (): number => {
+  if (typeof window === 'undefined') return DEFAULT_EDITOR_FONT_SIZE;
+
+  try {
+    const raw = window.localStorage.getItem('editorFontSize');
+    if (!raw) return DEFAULT_EDITOR_FONT_SIZE;
+    return clampEditorFontSize(Number(raw));
+  } catch {
+    return DEFAULT_EDITOR_FONT_SIZE;
+  }
+};
+
 export default function EditorPanel() {
   const code = useStore((state) => state.code);
   const setCode = useStore((state) => state.setCode);
@@ -27,6 +48,7 @@ export default function EditorPanel() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [aiProgress, setAiProgress] = useState(0);
+  const [editorFontSize, setEditorFontSize] = useState<number>(() => getInitialEditorFontSize());
 
   const currentMeta = useMemo(
     () => buildCurrentStepMetadata(timeline, breakpoints, currentStepIndex),
@@ -137,6 +159,13 @@ export default function EditorPanel() {
   }, [breakpoints, code, currentMeta?.eventKind, currentMeta?.hasBreakpoint, currentStepIndex, errorColumn, errorLine, timeline, status]);
 
   useEffect(() => {
+    try {
+      window.localStorage.setItem('editorFontSize', String(editorFontSize));
+    } catch {
+    }
+  }, [editorFontSize]);
+
+  useEffect(() => {
     if (!isAiLoading) {
       return;
     }
@@ -205,11 +234,51 @@ export default function EditorPanel() {
     await runAiAnalysis();
   };
 
+  const increaseEditorFontSize = () => {
+    setEditorFontSize((prev) => clampEditorFontSize(prev + 1));
+  };
+
+  const decreaseEditorFontSize = () => {
+    setEditorFontSize((prev) => clampEditorFontSize(prev - 1));
+  };
+
+  const resetEditorFontSize = () => {
+    setEditorFontSize(DEFAULT_EDITOR_FONT_SIZE);
+  };
+
   return (
     <div className="flex-1 border-r border-border bg-panel flex flex-col min-h-0 relative">
       <div className="flex items-center justify-between gap-4 shrink-0 border-b border-border bg-panel-alt px-4 py-2.5 text-foreground">
         <span className="text-[var(--text-body)] font-medium">코드 편집기</span>
         <div className="flex items-center gap-3">
+          <div className="inline-flex items-center gap-1 rounded-[var(--radius-md)] border border-border bg-background px-1 py-1">
+            <button
+              type="button"
+              onClick={decreaseEditorFontSize}
+              disabled={editorFontSize <= MIN_EDITOR_FONT_SIZE}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] text-[var(--text-small)] text-foreground-secondary hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50"
+              title="코드 글자 크기 줄이기"
+            >
+              A-
+            </button>
+            <button
+              type="button"
+              onClick={resetEditorFontSize}
+              className="inline-flex h-7 min-w-[48px] items-center justify-center rounded-[var(--radius-sm)] px-1 text-[11px] text-foreground-secondary hover:bg-panel"
+              title="기본 글자 크기로 복원"
+            >
+              {editorFontSize}px
+            </button>
+            <button
+              type="button"
+              onClick={increaseEditorFontSize}
+              disabled={editorFontSize >= MAX_EDITOR_FONT_SIZE}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] text-[var(--text-small)] text-foreground-secondary hover:bg-panel disabled:cursor-not-allowed disabled:opacity-50"
+              title="코드 글자 크기 키우기"
+            >
+              A+
+            </button>
+          </div>
           <button
             onClick={handleAiAnalysis}
             disabled={isAiLoading || !code.trim()}
@@ -233,7 +302,7 @@ export default function EditorPanel() {
           onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },
-            fontSize: 14,
+            fontSize: editorFontSize,
             readOnly: isRunning,
             glyphMargin: true,
           }}
