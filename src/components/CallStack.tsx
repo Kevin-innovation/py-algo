@@ -6,9 +6,17 @@ import { buildCurrentStepMetadata, useStore, HeapObject } from '../store/useStor
 
 interface CallStackProps {
   showHeapPanel?: boolean;
+  showAllPointers: boolean;
+  enabledGlobalPointerVars: string[];
+  onToggleGlobalPointerVar: (varName: string) => void;
 }
 
-export default function CallStack({ showHeapPanel = true }: CallStackProps) {
+export default function CallStack({
+  showHeapPanel = true,
+  showAllPointers,
+  enabledGlobalPointerVars,
+  onToggleGlobalPointerVar,
+}: CallStackProps) {
   const timeline = useStore((state) => state.timeline);
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const breakpoints = useStore((state) => state.breakpoints);
@@ -58,6 +66,9 @@ export default function CallStack({ showHeapPanel = true }: CallStackProps) {
                 {Object.entries(frame.locals || {}).map(([varName, val]) => {
                   const localVal = val as HeapObject;
                   const changed = changedVarSet.has(varName) && frameIdx === currentSnapshot.stack.length - 1;
+                  const isGlobalFrame = frame.func_name === 'Global';
+                  const hasPointer = Boolean(localVal.ref && currentSnapshot.heap[localVal.id]);
+                  const isPointerEnabled = showAllPointers || (isGlobalFrame && enabledGlobalPointerVars.includes(varName));
                   return (
                     <motion.div
                       layout
@@ -67,12 +78,24 @@ export default function CallStack({ showHeapPanel = true }: CallStackProps) {
                       <span className={changed ? 'font-semibold text-[var(--trace-stdout-text)]' : 'text-[var(--trace-stdout-text)]'}>{varName}</span>
                       <span className="text-foreground">=</span>
                       {localVal.ref ? (
-                        <span
-                          id={`var-${frame.func_name}-${frameIdx}-${varName}`}
-                          className={changed ? 'cursor-pointer text-[var(--trace-return-text)] hover:underline' : 'cursor-pointer text-[var(--trace-return-text)] hover:underline'}
-                        >
-                          포인터
-                        </span>
+                        isGlobalFrame && hasPointer ? (
+                          <button
+                            id={`var-${frame.func_name}-${frameIdx}-${varName}`}
+                            type="button"
+                            onClick={() => onToggleGlobalPointerVar(varName)}
+                            className={`${changed ? 'font-semibold ' : ''}cursor-pointer text-[var(--trace-return-text)] hover:underline`}
+                            title={isPointerEnabled ? '화살표 끄기' : '화살표 켜기'}
+                          >
+                            {isPointerEnabled ? '포인터 ON' : '포인터 OFF'}
+                          </button>
+                        ) : (
+                          <span
+                            id={`var-${frame.func_name}-${frameIdx}-${varName}`}
+                            className={changed ? 'cursor-pointer text-[var(--trace-return-text)] hover:underline' : 'cursor-pointer text-[var(--trace-return-text)] hover:underline'}
+                          >
+                            포인터
+                          </span>
+                        )
                       ) : (
                         <span className={changed ? 'font-semibold text-[var(--trace-stdin-text)]' : 'text-[var(--trace-stdin-text)]'}>{String(localVal.value)}</span>
                       )}

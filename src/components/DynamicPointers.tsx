@@ -3,7 +3,12 @@
 import { useStore, HeapObject } from '../store/useStore';
 import Xarrow from 'react-xarrows';
 
-export default function DynamicPointers() {
+interface DynamicPointersProps {
+  showAllPointers: boolean;
+  enabledGlobalPointerVars: string[];
+}
+
+export default function DynamicPointers({ showAllPointers, enabledGlobalPointerVars }: DynamicPointersProps) {
   const timeline = useStore((state) => state.timeline);
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const currentSnapshot = timeline[currentStepIndex];
@@ -16,7 +21,9 @@ export default function DynamicPointers() {
   currentSnapshot.stack.forEach((frame, frameIdx) => {
     Object.entries(frame.locals || {}).forEach(([varName, val]) => {
       const heapVal = val as HeapObject;
-      if (heapVal && heapVal.ref && currentSnapshot.heap[heapVal.id]) {
+      const isGlobalFrame = frame.func_name === 'Global';
+      const isEnabledInFilteredMode = isGlobalFrame && enabledGlobalPointerVars.includes(varName);
+      if (heapVal && heapVal.ref && currentSnapshot.heap[heapVal.id] && (showAllPointers || isEnabledInFilteredMode)) {
         pointers.push({
           start: `var-${frame.func_name}-${frameIdx}-${varName}`,
           end: `heap-${heapVal.id}`,
@@ -25,10 +32,29 @@ export default function DynamicPointers() {
     });
   });
 
+  if (!showAllPointers) {
+    return (
+      <>
+        {pointers.map((p, idx) => (
+          <Xarrow
+            key={`${p.start}-${p.end}-${idx}`}
+            start={p.start}
+            end={p.end}
+            color="#a78bfa"
+            strokeWidth={2}
+            headSize={4}
+            curveness={0.3}
+            path="smooth"
+          />
+        ))}
+      </>
+    );
+  }
+
   // 2. From Heap object properties/elements to other Heap objects
   Object.entries(currentSnapshot.heap || {}).forEach(([id, obj]) => {
     const heapObj = obj as HeapObject;
-    if (heapObj.type === 'list' || heapObj.type === 'tuple' || heapObj.type === 'set') {
+    if (heapObj.type === 'list' || heapObj.type === 'tuple' || heapObj.type === 'set' || heapObj.type === 'deque') {
       if (Array.isArray(heapObj.value)) {
         heapObj.value.forEach((v: unknown, idx: number) => {
           const itemVal = v as HeapObject;

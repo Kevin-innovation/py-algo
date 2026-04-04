@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import CallStack from './CallStack';
 import Heap from './Heap';
 import DynamicPointers from './DynamicPointers';
 import FunctionHistoryPanel from './FunctionHistoryPanel';
 import { Xwrapper } from 'react-xarrows';
+import { HeapObject, useStore } from '../store/useStore';
 
 export default function Visualizer() {
   const splitRef = useRef<HTMLDivElement | null>(null);
@@ -13,6 +14,34 @@ export default function Visualizer() {
   const [leftPercent, setLeftPercent] = useState(38);
   const [isDesktop, setIsDesktop] = useState(false);
   const [showAdvancedMemory, setShowAdvancedMemory] = useState(false);
+  const [showAllPointers, setShowAllPointers] = useState(false);
+  const [enabledGlobalPointerVars, setEnabledGlobalPointerVars] = useState<string[]>([]);
+  const timeline = useStore((state) => state.timeline);
+  const currentStepIndex = useStore((state) => state.currentStepIndex);
+  const currentSnapshot = timeline[currentStepIndex];
+
+  const globalPointerVarNames = useMemo(() => {
+    if (!currentSnapshot?.stack || !currentSnapshot.heap) return [] as string[];
+    const globalFrame = currentSnapshot.stack.find((frame) => frame.func_name === 'Global');
+    if (!globalFrame) return [];
+
+    return Object.entries(globalFrame.locals || {})
+      .filter(([, val]) => {
+        const heapVal = val as HeapObject;
+        return Boolean(heapVal?.ref && currentSnapshot.heap[heapVal.id]);
+      })
+      .map(([varName]) => varName);
+  }, [currentSnapshot]);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setEnabledGlobalPointerVars((prev) => {
+        const next = prev.filter((name) => globalPointerVarNames.includes(name));
+        const missingDefaults = globalPointerVarNames.filter((name) => !next.includes(name));
+        return [...next, ...missingDefaults];
+      });
+    });
+  }, [globalPointerVarNames]);
 
   useEffect(() => {
     const update = () => setIsDesktop(window.innerWidth >= 1024);
@@ -65,16 +94,35 @@ export default function Visualizer() {
     });
   };
 
+  const toggleShowAllPointers = () => {
+    setShowAllPointers((prev) => !prev);
+  };
+
+  const toggleGlobalPointerVar = (varName: string) => {
+    setEnabledGlobalPointerVars((prev) => (
+      prev.includes(varName)
+        ? prev.filter((item) => item !== varName)
+        : [...prev, varName]
+    ));
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative min-h-0 bg-panel">
       <FunctionHistoryPanel
         showAdvancedMemory={showAdvancedMemory}
         onToggleAdvancedMemory={toggleAdvancedMemory}
+        showAllPointers={showAllPointers}
+        onToggleShowAllPointers={toggleShowAllPointers}
       />
       <div ref={splitRef} className="flex-1 flex flex-row overflow-hidden relative min-h-0 bg-background">
         <Xwrapper>
           <div className="min-h-0" style={isDesktop && showAdvancedMemory ? { width: `calc(${leftPercent}% - 4px)` } : undefined}>
-            <CallStack showHeapPanel={showAdvancedMemory} />
+            <CallStack
+              showHeapPanel={showAdvancedMemory}
+              showAllPointers={showAllPointers}
+              enabledGlobalPointerVars={enabledGlobalPointerVars}
+              onToggleGlobalPointerVar={toggleGlobalPointerVar}
+            />
           </div>
           {showAdvancedMemory ? (
             <>
@@ -90,7 +138,10 @@ export default function Visualizer() {
               <div className="flex-1 min-h-0" style={isDesktop ? { width: `calc(${100 - leftPercent}% - 4px)` } : undefined}>
                 <Heap />
               </div>
-              <DynamicPointers />
+              <DynamicPointers
+                showAllPointers={showAllPointers}
+                enabledGlobalPointerVars={enabledGlobalPointerVars}
+              />
             </>
           ) : null}
         </Xwrapper>

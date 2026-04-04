@@ -6,11 +6,15 @@ import { buildTimelineMetadata, useStore } from '../store/useStore';
 interface FunctionHistoryPanelProps {
   showAdvancedMemory: boolean;
   onToggleAdvancedMemory: () => void;
+  showAllPointers: boolean;
+  onToggleShowAllPointers: () => void;
 }
 
 export default function FunctionHistoryPanel({
   showAdvancedMemory,
   onToggleAdvancedMemory,
+  showAllPointers,
+  onToggleShowAllPointers,
 }: FunctionHistoryPanelProps) {
   const currentStepIndex = useStore((state) => state.currentStepIndex);
   const setCurrentStepIndex = useStore((state) => state.setCurrentStepIndex);
@@ -23,15 +27,25 @@ export default function FunctionHistoryPanel({
       <div className="bg-panel border-b border-border p-3 shrink-0">
         <div className="mb-2 flex items-center justify-between gap-2">
           <div className="text-sm font-semibold text-foreground">함수 기록</div>
-          <button
-            type="button"
-            onClick={onToggleAdvancedMemory}
-            className="inline-flex h-7 items-center rounded-[var(--radius-sm)] border border-border bg-background px-2 text-[var(--text-small)] text-foreground-secondary transition-colors hover:bg-panel hover:text-foreground"
-          >
-            {showAdvancedMemory ? '메모리 뷰 숨기기' : '고급 메모리 보기'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onToggleShowAllPointers}
+              className="inline-flex h-7 items-center rounded-[var(--radius-sm)] border border-border bg-background px-2 text-[var(--text-small)] text-foreground-secondary transition-colors hover:bg-panel hover:text-foreground"
+            >
+              {showAllPointers ? '전체 화살표 끄기' : '전체 화살표 켜기'}
+            </button>
+            <button
+              type="button"
+              onClick={onToggleAdvancedMemory}
+              className="inline-flex h-7 items-center rounded-[var(--radius-sm)] border border-border bg-background px-2 text-[var(--text-small)] text-foreground-secondary transition-colors hover:bg-panel hover:text-foreground"
+            >
+              {showAdvancedMemory ? '메모리 뷰 숨기기' : '고급 메모리 보기'}
+            </button>
+          </div>
         </div>
         <div className="text-xs text-foreground-secondary mt-1">호출 및 반환 이벤트가 여기에 표시됩니다.</div>
+        <div className="text-[11px] text-foreground-secondary mt-1">글로벌 포인터 변수명을 클릭하면 화살표를 개별 on/off 할 수 있습니다.</div>
       </div>
     );
   }
@@ -42,6 +56,13 @@ export default function FunctionHistoryPanel({
         <h3 className="text-sm font-semibold text-foreground">함수 기록</h3>
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-foreground-secondary">{timelineMeta.functionHistory.length}개 이벤트</span>
+          <button
+            type="button"
+            onClick={onToggleShowAllPointers}
+            className="inline-flex h-7 items-center rounded-[var(--radius-sm)] border border-border bg-background px-2 text-[var(--text-small)] text-foreground-secondary transition-colors hover:bg-panel hover:text-foreground"
+          >
+            {showAllPointers ? '전체 화살표 끄기' : '전체 화살표 켜기'}
+          </button>
           <button
             type="button"
             onClick={onToggleAdvancedMemory}
@@ -69,6 +90,7 @@ export default function FunctionHistoryPanel({
           );
         })}
       </div>
+      <div className="mt-2 text-[11px] text-foreground-secondary">글로벌 포인터 변수명을 클릭하면 화살표를 개별 on/off 할 수 있습니다.</div>
     </div>
   );
 }
