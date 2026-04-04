@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
 
 import DynamicPointers from './DynamicPointers';
 import { useStore } from '../store/useStore';
@@ -15,6 +15,11 @@ vi.mock('react-xarrows', () => ({
 }));
 
 describe('DynamicPointers', () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
   const baseState = {
     timeline: [
       {
@@ -72,5 +77,13 @@ describe('DynamicPointers', () => {
     expect(arrowLabels).toContain('var-Global-0-b->heap-2');
     expect(arrowLabels).toContain('var-foo-1-c->heap-2');
     expect(arrowLabels).toContain('heap-1-item-0->heap-2');
+  });
+
+  it('shows no arrows in filtered mode when no global pointers are enabled', () => {
+    (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: (state: typeof baseState) => unknown) => selector(baseState));
+
+    render(<DynamicPointers showAllPointers={false} enabledGlobalPointerVars={[]} />);
+
+    expect(screen.queryAllByTestId('arrow')).toHaveLength(0);
   });
 });
